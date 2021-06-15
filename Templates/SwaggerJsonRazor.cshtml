@@ -1,0 +1,72 @@
+﻿@using System.Text.Json;
+@{
+    var gen = Model as swagger2js_cli.Models.SwaggerModel;
+
+    Func<string, string> GetParams = name =>
+    {
+        var res = "";
+        var dto = gen.components.schemas[name];
+        var p = dto?.properties;
+        if (p == null) return res;
+        var dic = new Dictionary<string, object>();
+        var keys = p.Keys;
+        foreach (var key in keys)
+        {
+            object value = null;
+            switch (p[key].type)
+            {
+                case "string":
+                    value = "";
+                    break;
+                case "integer":
+                    value = 0;
+                    break;
+            }
+            dic.Add(key, value);
+        }
+        res = JsonSerializer.Serialize(dic).Replace("\\", "").Replace("&quot;", "\"");
+        return res;
+    };
+}
+import {getFn, postFn} from "./api";
+export default {
+@foreach (var path in gen.paths.Keys)
+{
+    var name = @path.Replace("/api/", "");
+    var nameList = name.Split("/").ToList();
+    nameList.Remove(nameList[0]);
+    name = string.Join("_", nameList);
+    //.Replace("/", "_");
+    if (name.StartsWith("_")) name = name.Substring(1);
+    name = name.First().ToString().ToLower() + name.Substring(1);
+    var getPostName = "";
+    var summary = "";
+    var paramDto = "";
+    if (@gen.paths[path].get != null)
+    {
+        getPostName = "getFn";
+        summary = @gen.paths[path].get.summary;
+    }
+    if (@gen.paths[path].post != null)
+    {
+        getPostName = "postFn";
+        summary = @gen.paths[path].post.summary;
+        var _ref = @gen.paths[path].post.requestBody?.content?.application_json?.schema?._ref;
+        if (_ref != null)
+        {
+            var dtoNameList = _ref.Split("/");
+            var dtoName = dtoNameList[dtoNameList.Length - 1];
+            paramDto = GetParams(dtoName);
+        }
+    }
+
+
+
+    <text>  // @summary</text>
+    <text>  @name :(@if (paramDto != "")
+    {<text>params=@paramDto</text>}
+else
+{ <text>params</text>}, loadingFn)=>@getPostName ("@path",params, loadingFn),</text>
+<text></text>
+}
+}
