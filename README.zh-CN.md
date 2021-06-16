@@ -11,6 +11,6 @@ swagger2js_cli 是一个有用的 swagger json 文档 转api.js 工具, 支持 .
 ## 📚 文档说明
 待更新
 
-## 🗄 协议
+## 🗄 许可证
 
 [MIT](LICENSE)
