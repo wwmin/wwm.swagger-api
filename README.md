@@ -1,13 +1,9 @@
-﻿<h1 align="center"> 🦄 FreeSql </h1><div align="center">
+﻿## 🦄 swagger2js_cli
 
-swagger2js_cli is a powerful swagger json document to api js, supports .NET 5 .
+> swagger2js_cli is a powerful swagger json document to api js, supports .NET 5 .
 
-<p>
-    <span>English</span> |  
-    <a href="README.zh-CN.md">中文</a>
-</p>
+    English |  <a href="README.zh-CN.md">中文</a>
 
-</div>
 
 ## 📚 Documentation
 TODO
