@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using RazorEngine.Templating;
 using swagger2js_cli.Models;
@@ -35,7 +36,7 @@ new Colorful.Formatter(version, Color.SlateGray));
 
 
 
-            ArgsSwaggerJsonFileUrl = "swagger.json";
+            //ArgsSwaggerJsonFileUrl = "swagger.json";
             ArgsReadKey = true;
 
             #region SetDirection
@@ -62,8 +63,8 @@ new Colorful.Formatter(version, Color.SlateGray));
      在nuget上查看 https://www.nuget.org/packages/swagger2js_cli/
  # 快速开始 #
  > {1}
+    -FileNameUrl   [必填]swagger.json URL(或本地文件路径) 如:-FileNameUrl http://localhost:5000/swagger/v1/swagger.json
     -Razor         自定义模板 如:-Razor ""d:\diy.cshtml""
-    -FileNameUrl   swagger.json URL(或本地url) 如:-FileNameUrl http://localhost:5000/swagger/v1/swagger.json
     -Output        保存路径，默认为当前 shell 所在目录 如:-Output apiFiles
     -DownLoadDefaultRazor   获取默认的razor模板到本地 如: -DownLoadDefaultRazor 后面不跟参数
 ", Color.SlateGray,
@@ -123,7 +124,10 @@ new Colorful.Formatter("swagger2js", Color.White)
                         throw new ArgumentException($"错误的参数设置：{args[a]}");
                 }
             }
-
+            if (string.IsNullOrWhiteSpace(ArgsSwaggerJsonFileUrl))
+            {
+                throw new ArgumentException($"错误的参数设置：-FileNameUrl 参数不能为空");
+            }
             #endregion GetArguments
             #region 读取内嵌的模板资源
             if (ArgsRazor == null)
@@ -133,14 +137,31 @@ new Colorful.Formatter("swagger2js", Color.White)
             #endregion 读取内嵌的模板资源
             //开始生成操作
             {
-                var client = new HttpClient();
-                var res = client.GetAsync(ArgsSwaggerJsonFileUrl).Result;
-                if (!res.IsSuccessStatusCode)
+                string jsondata = string.Empty;
+                #region 读取json文件内容
+                if (IsUrl(ArgsSwaggerJsonFileUrl))
                 {
-                    Colorful.Console.WriteFormatted("获取swagger json文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result), Color.Red);
-                    throw new ArgumentException(res.StatusCode.ToString());
+                    var client = new HttpClient();
+                    var res = client.GetAsync(ArgsSwaggerJsonFileUrl).Result;
+                    if (!res.IsSuccessStatusCode)
+                    {
+                        Colorful.Console.WriteFormatted("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result), Color.Red);
+                        throw new ArgumentException(res.StatusCode.ToString());
+                    }
+                    jsondata = res.Content.ReadAsStringAsync().Result;
                 }
-                var jsondata = res.Content.ReadAsStringAsync().Result;
+                else if (File.Exists(ArgsSwaggerJsonFileUrl))
+                {
+                    jsondata = File.ReadAllText(ArgsSwaggerJsonFileUrl);
+                }
+                else
+                {
+                    throw new ArgumentException($"错误的参数设置：请检查 -FileNameUrl 参数的正确性");
+                }
+
+                Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取文件内容完毕\r\n", Color.DarkGreen);
+                #endregion
+
 
                 //$ref=>_ref , application/json=>application_json , multipart/form-data=>multipart_form_data
                 var cleanData = jsondata.Replace("$ref", "_ref").Replace("application/json", "application_json").Replace("multipart/form-data", "multipart_form_data");
@@ -182,33 +203,30 @@ new Colorful.Formatter("swagger2js", Color.White)
                 foreach (var key in groupDic.Keys)
                 {
                     data.paths = new Dictionary<string, PathModel>();
-                    //var sameRouteList = sameRoute.Select(p => p).ToList();
-                    //sameRouteList.Add(key);
-                    //var sameRouteString = string.Join("/", sameRouteList);
                     foreach (var path in groupDic[key])
                     {
                         data.paths.Add(path, rawData.paths[path]);
                     }
-                    //await File.WriteAllTextAsync("swaggerJson.json", JsonSerializer.Serialize(data));
-
-                    //var razor = RazorContentManager.swagger_test_cshtml;
-                    //var razor = File.ReadAllText("Templates/SwaggerJsonRazor.cshtml");
                     string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data);
                     razorResult = razorResult.Replace("&quot;", "\"");
-
-                    var apiJsText = $"{ArgsOutput}/api.{key.First().ToString().ToLower() + key[1..]}.js";
-                    if (File.Exists(apiJsText))
+                    var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
+                    var fileFullPath = $"{ArgsOutput}/{fileName}";
+                    if (File.Exists(fileFullPath))
                     {
-                        File.Delete(apiJsText);
+                        File.Delete(fileFullPath);
                     }
-                    File.WriteAllText(apiJsText, razorResult);
+                    File.WriteAllText(fileFullPath, razorResult);
                     outputCounter++;
+                    Colorful.Console.WriteFormatted($"\r\n[{outputCounter}]:{fileName}", Color.BurlyWood);
                 }
 
-                Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
+                Colorful.Console.WriteFormatted($"\r\n\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
 
                 if (ArgsReadKey)
-                    Console.ReadKey();
+                {
+                    Console.WriteLine("\r\n按任意键退出");
+                    //Console.ReadKey();
+                }
                 wait.Set();
             }
         }
@@ -235,5 +253,7 @@ new Colorful.Formatter("swagger2js", Color.White)
             }
             return res;
         }
+
+        private static bool IsUrl(string urlStr) => Regex.IsMatch(urlStr, @"((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?");
     }
 }
