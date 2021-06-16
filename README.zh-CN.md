@@ -8,6 +8,9 @@
 更新工具：dotnet tool update -g swagger2js_cli
 在nuget上查看 https://www.nuget.org/packages/swagger2js_cli/
 
+## 打包
+dotnet pack
+
 ## 🗄 许可证
 
 [MIT](LICENSE)
