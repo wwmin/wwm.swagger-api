@@ -22,6 +22,7 @@ namespace swagger2js_cli
         private string ArgsRazor { get; }
         internal string ArgsOutput { get; private set; }
         private bool ArgsReadKey { get; }
+        private bool ArgsGenRebuildFile { get; }
 
         public ConsoleApp(string[] args, ManualResetEvent wait)
         {
@@ -60,13 +61,13 @@ new Colorful.Formatter(version, Color.SlateGray));
                 Colorful.Console.WriteFormatted(@"
      {0}
      更新工具：dotnet tool update -g swagger2js_cli
-     在nuget上查看 https://www.nuget.org/packages/swagger2js_cli/
  # 快速开始 #
  > {1}
-    -FileNameUrl   [必填]swagger.json URL(或本地文件路径) 如:-FileNameUrl http://localhost:5000/swagger/v1/swagger.json
-    -Razor         自定义模板 如:-Razor ""d:\diy.cshtml""
-    -Output        保存路径，默认为当前 shell 所在目录 如:-Output apiFiles
-    -DownLoadDefaultRazor   获取默认的razor模板到本地 如: -DownLoadDefaultRazor 后面不跟参数
+    -FileUrl   [必填]swagger.json URL(或本地文件路径) 如:-FileUrl http://localhost:5000/swagger/v1/swagger.json
+    -Razor          自定义模板 如:-Razor ""d:\diy.cshtml""
+    -Output         保存路径，默认为当前 shell 所在目录 如:-Output apiFiles
+    -GenRebuildFile 是否输出""重新生成bat""文件,默认为0 如:-GenRebuildFile 1
+    -DownLoadRazor  获取默认的razor模板到本地 如: -DownLoadRazor 后面不跟参数
 ", Color.SlateGray,
 new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
 new Colorful.Formatter("swagger2js", Color.White)
@@ -93,7 +94,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                         a++;
                         break;
 
-                    case "-filenameurl":
+                    case "-fileurl":
                         ArgsSwaggerJsonFileUrl = args[a + 1];
                         a++;
                         break;
@@ -107,10 +108,8 @@ new Colorful.Formatter("swagger2js", Color.White)
                         setArgsOutput(args[a + 1]);
                         a++;
                         break;
-                    case "-downloaddefaultrazor":
+                    case "-downloadrazor":
                         ArgsRazor = GetDefaultRazorContent(assembly);
-                        //Colorful.Console.WriteFormatted(ArgsRazor, Color.AliceBlue);
-
                         var swaggerJsonRazorCshtml = "SwaggerJsonRazor.cshtml";
                         if (File.Exists(swaggerJsonRazorCshtml))
                         {
@@ -118,6 +117,12 @@ new Colorful.Formatter("swagger2js", Color.White)
                         }
                         File.WriteAllText(swaggerJsonRazorCshtml, ArgsRazor);
                         //a++;
+                        Console.WriteLine("文件已下载:" + swaggerJsonRazorCshtml);
+                        wait.Set();
+                        return;
+                    case "-genrebuildfile":
+                        ArgsGenRebuildFile = args[a + 1].Trim() == "1";
+                        a++;
                         break;
                     default:
                         showInitConsole();
@@ -210,7 +215,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                     string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data);
                     razorResult = razorResult.Replace("&quot;", "\"");
                     var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
-                    var fileFullPath = $"{ArgsOutput}/{fileName}";
+                    var fileFullPath = $"{ArgsOutput}{fileName}";
                     if (File.Exists(fileFullPath))
                     {
                         File.Delete(fileFullPath);
@@ -219,6 +224,30 @@ new Colorful.Formatter("swagger2js", Color.White)
                     outputCounter++;
                     Colorful.Console.WriteFormatted($"\r\n[{outputCounter}]:{fileName}", Color.BurlyWood);
                 }
+
+                #region rebuild.bat
+                if (ArgsGenRebuildFile)
+                {
+                    var rebuildBatName = "_重新生成.bat";
+                    var rebuildBat = ArgsOutput + rebuildBatName;
+                    if (File.Exists(rebuildBat) == false)
+                    {
+                        var razorCshtmlName = "__razor.cshtml.txt";
+                        var razorCshtml = ArgsOutput + razorCshtmlName;
+                        if (File.Exists(razorCshtml) == false)
+                        {
+                            File.WriteAllText(razorCshtml, ArgsRazor);
+                            Colorful.Console.WriteFormatted("\r\nOUT -> " + razorCshtml + "    (以后) 编辑它自定义模板生成\r\n", Color.Magenta);
+                            outputCounter++;
+                        }
+
+                        File.WriteAllText(rebuildBat, $@"
+swagger2js -Razor ""{razorCshtmlName}"" -FileUrl ""{ArgsSwaggerJsonFileUrl}""");
+                        Colorful.Console.WriteFormatted("OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
+                        outputCounter++;
+                    }
+                }
+                #endregion
 
                 Colorful.Console.WriteFormatted($"\r\n\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
 
