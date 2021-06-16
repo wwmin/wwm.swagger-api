@@ -4,7 +4,9 @@
 <a href="README.zh-CN.md">English</a> |  <span>中文</span>
 
 ## 📚 文档说明
-待更新
+安装工具: dotnet tool install -g swagger2js_cli
+更新工具：dotnet tool update -g swagger2js_cli
+在nuget上查看 https://www.nuget.org/packages/swagger2js_cli/
 
 ## 🗄 许可证
 
