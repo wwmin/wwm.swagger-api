@@ -36,7 +36,6 @@ export default {
     var nameList = name.Split("/").ToList();
     nameList.Remove(nameList[0]);
     name = string.Join("_", nameList);
-    //.Replace("/", "_");
     if (name.StartsWith("_")) name = name.Substring(1);
     name = name.First().ToString().ToLower() + name.Substring(1);
     var getPostName = "";

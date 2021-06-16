@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using RazorEngine.Templating;
@@ -61,9 +62,10 @@ new Colorful.Formatter(version, Color.SlateGray));
      在nuget上查看 https://www.nuget.org/packages/swagger2js_cli/
  # 快速开始 #
  > {1}
-    -Razor ""d:\diy.cshtml""   *自定义模板*
-    -FileNameUrl        swagger.json URL(或本地url) 如: http://localhost:5000/swagger/v1/swagger.json
-    -Output          保存路径，默认为当前 shell 所在目录
+    -Razor         自定义模板 如:-Razor ""d:\diy.cshtml""
+    -FileNameUrl   swagger.json URL(或本地url) 如:-FileNameUrl http://localhost:5000/swagger/v1/swagger.json
+    -Output        保存路径，默认为当前 shell 所在目录 如:-Output apiFiles
+    -DownLoadDefaultRazor   获取默认的razor模板到本地 如: -DownLoadDefaultRazor 后面不跟参数
 ", Color.SlateGray,
 new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
 new Colorful.Formatter("swagger2js", Color.White)
@@ -104,7 +106,18 @@ new Colorful.Formatter("swagger2js", Color.White)
                         setArgsOutput(args[a + 1]);
                         a++;
                         break;
+                    case "-downloaddefaultrazor":
+                        ArgsRazor = GetDefaultRazorContent(assembly);
+                        //Colorful.Console.WriteFormatted(ArgsRazor, Color.AliceBlue);
 
+                        var swaggerJsonRazorCshtml = "SwaggerJsonRazor.cshtml";
+                        if (File.Exists(swaggerJsonRazorCshtml))
+                        {
+                            File.Delete(swaggerJsonRazorCshtml);
+                        }
+                        File.WriteAllText(swaggerJsonRazorCshtml, ArgsRazor);
+                        //a++;
+                        break;
                     default:
                         showInitConsole();
                         throw new ArgumentException($"错误的参数设置：{args[a]}");
@@ -115,24 +128,7 @@ new Colorful.Formatter("swagger2js", Color.White)
             #region 读取内嵌的模板资源
             if (ArgsRazor == null)
             {
-                //此方式在发布之后工具位置会找不到资源
-                //ArgsRazor = File.ReadAllText("Templates/SwaggerJsonRazor.cshtml");
-
-                // 读取文件流
-                var names = assembly.GetManifestResourceNames();
-                for (int i = 0; i < names.Length; i++)
-                {
-                    var name = assembly.GetName().Name + ".Templates.SwaggerJsonRazor.cshtml";
-                    if (names[i] != name)
-                    {
-                        continue;
-                    }
-                    using var stream = assembly.GetManifestResourceStream(name);
-                    using var streamReader = new StreamReader(stream);
-                    var content = streamReader.ReadToEnd();
-                    ArgsRazor = content;
-                    break;
-                }
+                ArgsRazor = GetDefaultRazorContent(assembly);
             }
             #endregion 读取内嵌的模板资源
             //开始生成操作
@@ -209,7 +205,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                     outputCounter++;
                 }
 
-                Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now.ToString("MM-dd HH:mm:ss")}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
+                Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
 
                 if (ArgsReadKey)
                     Console.ReadKey();
@@ -217,11 +213,27 @@ new Colorful.Formatter("swagger2js", Color.White)
             }
         }
 
-        private static string GetContent(Stream stream)
+        private static string GetDefaultRazorContent(Assembly assembly)
         {
-            using var streamReader = new StreamReader(stream);
-            var content = streamReader.ReadToEnd();
-            return content;
+            //此方式在发布之后工具位置会找不到资源
+            //ArgsRazor = File.ReadAllText("Templates/SwaggerJsonRazor.cshtml");
+            var res = "";
+            // 读取文件流
+            var names = assembly.GetManifestResourceNames();
+            for (int i = 0; i < names.Length; i++)
+            {
+                var name = assembly.GetName().Name + ".Templates.SwaggerJsonRazor.cshtml";
+                if (names[i] != name)
+                {
+                    continue;
+                }
+                using var stream = assembly.GetManifestResourceStream(name);
+                using var streamReader = new StreamReader(stream);
+                var content = streamReader.ReadToEnd();
+                res = content;
+                break;
+            }
+            return res;
         }
     }
 }
