@@ -17,6 +17,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="README.zh-CN.md">
+      <LastGenOutput>README.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </None>
+    <None Update="README.md">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>README.Designer.cs</LastGenOutput>
+    </None>
     <None Update="Templates\SwaggerJsonRazor.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
