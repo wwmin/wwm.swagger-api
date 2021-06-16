@@ -3,34 +3,42 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>0.1.0</Version>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <!--ToolCommandName 这里面的内容就是用来在安装工具之后，通过什么样的命令启动这个工具，及安装工具用的是 NuGet 包的 Id 而和执行工具用的命令可以不相同-->
+    <ToolCommandName>swagger2js</ToolCommandName>
+    <Authors>wwmin</Authors>
+    <Description>使用swagger2js_cli 将远程或本地swagger.json文件生成api.js,省去前端copy api接口的时间</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/wwmin/swagger2js_cli</PackageProjectUrl>
     <RepositoryUrl>https://github.com/wwmin/swagger2js_cli</RepositoryUrl>
     <PackageTags>swagger json转api 调用js文件生成器</PackageTags>
+    <AssemblyVersion>0.1.1.0</AssemblyVersion>
+    <FileVersion>0.1.1.0</FileVersion>
+    <Version>0.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="RazorEngine.NetCore" Version="3.1.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="README.zh-CN.md">
-      <LastGenOutput>README.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </None>
-    <None Update="README.md">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>README.Designer.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\SwaggerJsonRazor.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Templates\HelloWorld.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="Templates\*.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Templates\HelloWorld.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Templates\SwaggerJsonRazor.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Templates\SwaggerJsonRazor.cshtml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
