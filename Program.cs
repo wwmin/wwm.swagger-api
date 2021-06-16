@@ -1,24 +1,12 @@
 ﻿using System;
-using System.Drawing;
-using System.IO;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
-using RazorEngine;
-using RazorEngine.Templating;
-using swagger2js_cli.Models;
-using System.Linq;
-
-using System.Collections.Generic;
 using System.Threading;
 
 namespace swagger2js_cli
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-
             //{
             //    string templateFilePath = "HelloWorld.cshtml";
             //    var templateFile = File.ReadAllText(templateFilePath);
@@ -48,7 +36,7 @@ namespace swagger2js_cli
             new Thread(() =>
             {
                 Thread.CurrentThread.Join(TimeSpan.FromSeconds(1));
-                ConsoleApp app = new ConsoleApp(args,wait);
+                ConsoleApp app = new ConsoleApp(args, wait);
             }).Start();
             wait.WaitOne();
             Console.ReadKey();

@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace swagger2js_cli.Models
 {
-
     public class SwaggerModel
     {
         public string openapi { get; set; }
@@ -79,7 +74,6 @@ namespace swagger2js_cli.Models
     {
         public string type { get; set; }
         public Dictionary<string, FormDataSchemaPropertyModel> properties { get; set; }
-
     }
 
     public class FormDataSchemaPropertyModel
@@ -94,7 +88,6 @@ namespace swagger2js_cli.Models
         public string style { get; set; }
     }
 
-
     public class Responses
     {
         public _200 _200 { get; set; }
@@ -105,8 +98,6 @@ namespace swagger2js_cli.Models
         public string description { get; set; }
     }
 
-
-
     public class Get
     {
         public string[] tags { get; set; }
@@ -115,7 +106,6 @@ namespace swagger2js_cli.Models
         public Parameter[] parameters { get; set; }
         public Responses responses { get; set; }
     }
-
 
     public class Parameter
     {
@@ -137,8 +127,6 @@ namespace swagger2js_cli.Models
         public Securityschemes securitySchemes { get; set; }
     }
 
-
-
     public class SchemasModel
     {
         public string[] required { get; set; }
@@ -148,15 +136,12 @@ namespace swagger2js_cli.Models
         public string description { get; set; }
     }
 
-
-
     public class PropertyModel
     {
         public int minLength { get; set; }
         public string type { get; set; }
         public string description { get; set; }
     }
-
 
     public class Securityschemes
     {
@@ -187,5 +172,4 @@ namespace swagger2js_cli.Models
         public string name { get; set; }
         public string description { get; set; }
     }
-
 }
