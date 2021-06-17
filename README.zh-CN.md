@@ -2,7 +2,17 @@
 > swagger2js_cli 是一个有用的 swagger json 文档 转api.js 工具, 支持 .NET 5 及以上.
 
 <a href="README.zh-CN.md">English</a> |  <span>中文</span>
-
+## 功能
+- [√] 导出get参数
+- [√] 导出post参数
+- [√] 自定义导出位置
+- [√] 按照controller name分文件
+- [√] 文件名及接口名首字母小写
+- [√] 读取本地接口文件
+- [√] 读取网络接口文件
+- [√] 可下载默认模板
+- [√] 生成自动重建bat文件
+- [√] 可使用本地自定义razor模板
 ## 📚 文档说明
 安装工具: dotnet tool install -g swagger2js_cli
 更新工具：dotnet tool update -g swagger2js_cli
