@@ -1,6 +1,22 @@
 ﻿@using System.Text.Json;
 @{
     var gen = Model as swagger2js_cli.Models.SwaggerModel;
+    Func<string, object> GetTypeDefaultValue = type =>
+    {
+        switch (type)
+        {
+            case "string":
+                return "";
+            case "integer":
+                return 0;
+            case "number":
+                return 0.0;
+            case "array":
+                return new List<object>();
+            default:
+                return "";
+        }
+    };
 
     Func<string, string> GetParams = name =>
     {
@@ -13,15 +29,7 @@
         foreach (var key in keys)
         {
             object value = null;
-            switch (p[key].type)
-            {
-                case "string":
-                    value = "";
-                    break;
-                case "integer":
-                    value = 0;
-                    break;
-            }
+            value = GetTypeDefaultValue(p[key].type);
             dic.Add(key, value);
         }
         res = JsonSerializer.Serialize(dic).Replace("\\", "").Replace("&quot;", "\"");
@@ -41,10 +49,24 @@ export default {
     var getPostName = "";
     var summary = "";
     var paramDto = "";
-    if (@gen.paths[path].get != null)
+    if (gen.paths[path].get != null)
     {
         getPostName = "getFn";
-        summary = @gen.paths[path].get.summary;
+        summary = gen.paths[path].get.summary;
+        var parameters = gen.paths[path].get.parameters;
+        Dictionary<string, object> paramDic = new Dictionary<string, object>();
+        if (parameters != null && parameters.Length > 0)
+        {
+            foreach (var p in parameters)
+            {
+                var value = GetTypeDefaultValue(p.schema.type);
+                paramDic.Add(p.name, value);
+            }
+            if (paramDic.Count > 0)
+            {
+                paramDto = JsonSerializer.Serialize(paramDic);
+            }
+        }
     }
     if (@gen.paths[path].post != null)
     {
@@ -66,4 +88,4 @@ else
 { <text>params</text>}, loadingFn)=>@getPostName ("@path",params, loadingFn),</text>
 <text></text>
 }
-}
+    }
