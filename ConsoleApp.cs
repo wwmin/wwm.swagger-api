@@ -67,7 +67,7 @@ new Colorful.Formatter(version, Color.SlateGray));
     -Razor          自定义模板 如:-Razor ""d:\diy.cshtml""
     -Output         保存路径，默认为当前 shell 所在目录 如:-Output apiFiles
     -GenRebuildFile 是否输出""重新生成bat""文件,默认为0 如:-GenRebuildFile 1
-    -DownLoadRazor  获取默认的razor模板到本地 如: -DownLoadRazor 后面不跟参数
+    -DownLoadRazor  获取默认的razor模板到本地,默认为0 如: -DownLoadRazor 1
 ", Color.SlateGray,
 new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
 new Colorful.Formatter("swagger2js", Color.White)
@@ -109,17 +109,19 @@ new Colorful.Formatter("swagger2js", Color.White)
                         a++;
                         break;
                     case "-downloadrazor":
-                        ArgsRazor = GetDefaultRazorContent(assembly);
-                        var swaggerJsonRazorCshtml = "SwaggerJsonRazor.cshtml";
-                        if (File.Exists(swaggerJsonRazorCshtml))
+                        if (args[a + 1].Trim() == "1")
                         {
-                            File.Delete(swaggerJsonRazorCshtml);
+                            ArgsRazor = GetDefaultRazorContent(assembly);
+                            var swaggerJsonRazorCshtml = "SwaggerJsonRazor.cshtml";
+                            if (File.Exists(swaggerJsonRazorCshtml))
+                            {
+                                File.Delete(swaggerJsonRazorCshtml);
+                            }
+                            File.WriteAllText(swaggerJsonRazorCshtml, ArgsRazor);
+                            Console.WriteLine("文件已下载:" + swaggerJsonRazorCshtml);
                         }
-                        File.WriteAllText(swaggerJsonRazorCshtml, ArgsRazor);
-                        //a++;
-                        Console.WriteLine("文件已下载:" + swaggerJsonRazorCshtml);
-                        wait.Set();
-                        return;
+                        a++;
+                        break;
                     case "-genrebuildfile":
                         ArgsGenRebuildFile = args[a + 1].Trim() == "1";
                         a++;
@@ -241,8 +243,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                             outputCounter++;
                         }
 
-                        File.WriteAllText(rebuildBat, $@"
-swagger2js -Razor ""{razorCshtmlName}"" -FileUrl ""{ArgsSwaggerJsonFileUrl}""");
+                        File.WriteAllText(rebuildBat, $@"swagger2js -Razor ""{razorCshtmlName}"" -FileUrl ""{ArgsSwaggerJsonFileUrl}""");
                         Colorful.Console.WriteFormatted("OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
                         outputCounter++;
                     }
