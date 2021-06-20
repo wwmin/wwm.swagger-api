@@ -63,15 +63,21 @@ new Colorful.Formatter(version, Color.SlateGray));
      更新工具：dotnet tool update -g swagger2js_cli
  # 快速开始 #
  > {1}
-    -FileUrl   [必填]swagger.json URL(或本地文件路径) 如:-FileUrl http://localhost:5000/swagger/v1/swagger.json
-    -Razor          自定义模板 如:-Razor ""d:\diy.cshtml""
-    -Output         保存路径，默认为当前 shell 所在目录 如:-Output apiFiles
-    -GenRebuildFile 是否输出""重新生成bat""文件,默认为0 如:-GenRebuildFile 1
-    -DownLoadRazor  获取默认的razor模板到本地,默认为0 如: -DownLoadRazor 1
+    --FileUrl 或 -f   [必填]swagger.json URL(或本地文件路径) 如:--FileUrl http://localhost:5000/swagger/v1/swagger.json
+    --Razor 或 -r          自定义模板 如:--Razor ""d:\diy.cshtml""
+    --Output 或 -o         保存路径，默认为当前 shell 所在目录 如:--Output apiFiles
+    --GenRebuildFile 或 -g 是否输出""重新生成bat""文件,默认为0 如:--GenRebuildFile 1
+    --DownLoadRazor -d  获取默认的razor模板到本地,默认为0 如: --DownLoadRazor 1
 ", Color.SlateGray,
 new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
 new Colorful.Formatter("swagger2js", Color.White)
 );
+            };
+
+            Action showVersionConsole = () =>
+            {
+                Colorful.Console.WriteFormatted(@$"{version}
+",Color.White);
             };
 
             #endregion showInitConsole
@@ -79,9 +85,15 @@ new Colorful.Formatter("swagger2js", Color.White)
             #region GetArguments
 
             string args0 = args[0].Trim().ToLower();
-            if (args[0] == "?" || args0 == "--help" || args0 == "-help")
+            if (args[0] == "?" || args0 == "--help" || args0 == "-help" || args0 == "-h")
             {
                 showInitConsole();
+                wait.Set();
+                return;
+            }
+
+            if (args[0] == "--version" || args[0] == "-v"){
+                showVersionConsole();
                 wait.Set();
                 return;
             }
@@ -89,25 +101,27 @@ new Colorful.Formatter("swagger2js", Color.White)
             {
                 switch (args[a].Trim().ToLower())
                 {
-                    case "-razor":
+                    case "-r":
+                    case "--razor":
                         ArgsRazor = File.ReadAllText(args[a + 1]);
                         a++;
                         break;
-
+                    case "-f":
                     case "-fileurl":
                         ArgsSwaggerJsonFileUrl = args[a + 1];
                         a++;
                         break;
-
+                    case "-k":
                     case "-readkey":
                         ArgsReadKey = args[a + 1].Trim() == "1";
                         a++;
                         break;
-
+                    case "-o":
                     case "-output":
                         setArgsOutput(args[a + 1]);
                         a++;
                         break;
+                    case "-d":
                     case "-downloadrazor":
                         if (args[a + 1].Trim() == "1")
                         {
@@ -122,12 +136,13 @@ new Colorful.Formatter("swagger2js", Color.White)
                         }
                         a++;
                         break;
+                    case "-g":
                     case "-genrebuildfile":
                         ArgsGenRebuildFile = args[a + 1].Trim() == "1";
                         a++;
                         break;
                     default:
-                        showInitConsole();
+                        //showInitConsole();
                         throw new ArgumentException($"错误的参数设置：{args[a]}");
                 }
             }
