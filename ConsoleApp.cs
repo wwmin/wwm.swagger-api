@@ -107,22 +107,22 @@ new Colorful.Formatter("swagger2js", Color.White)
                         a++;
                         break;
                     case "-f":
-                    case "-fileurl":
+                    case "--fileurl":
                         ArgsSwaggerJsonFileUrl = args[a + 1];
                         a++;
                         break;
                     case "-k":
-                    case "-readkey":
+                    case "--readkey":
                         ArgsReadKey = args[a + 1].Trim() == "1";
                         a++;
                         break;
                     case "-o":
-                    case "-output":
+                    case "--output":
                         setArgsOutput(args[a + 1]);
                         a++;
                         break;
                     case "-d":
-                    case "-downloadrazor":
+                    case "--downloadrazor":
                         if (args[a + 1].Trim() == "1")
                         {
                             ArgsRazor = GetDefaultRazorContent(assembly);
@@ -137,7 +137,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                         a++;
                         break;
                     case "-g":
-                    case "-genrebuildfile":
+                    case "--genrebuildfile":
                         ArgsGenRebuildFile = args[a + 1].Trim() == "1";
                         a++;
                         break;
@@ -148,7 +148,7 @@ new Colorful.Formatter("swagger2js", Color.White)
             }
             if (string.IsNullOrWhiteSpace(ArgsSwaggerJsonFileUrl))
             {
-                throw new ArgumentException($"错误的参数设置：-FileNameUrl 参数不能为空");
+                throw new ArgumentException($"错误的参数设置：--FileUrl 参数不能为空");
             }
             #endregion GetArguments
             #region 读取内嵌的模板资源
@@ -178,7 +178,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                 }
                 else
                 {
-                    throw new ArgumentException($"错误的参数设置：请检查 -FileNameUrl 参数的正确性");
+                    throw new ArgumentException($"错误的参数设置：请检查 --FileUrl 参数的正确性");
                 }
 
                 Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取文件内容完毕\r\n", Color.DarkGreen);
@@ -258,7 +258,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                             outputCounter++;
                         }
 
-                        File.WriteAllText(rebuildBat, $@"swagger2js -Razor ""{razorCshtmlName}"" -FileUrl ""{ArgsSwaggerJsonFileUrl}""");
+                        File.WriteAllText(rebuildBat, $@"swagger2js --Razor ""{razorCshtmlName}"" --FileUrl ""{ArgsSwaggerJsonFileUrl}""");
                         Colorful.Console.WriteFormatted("OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
                         outputCounter++;
                     }
@@ -299,6 +299,6 @@ new Colorful.Formatter("swagger2js", Color.White)
             return res;
         }
 
-        private static bool IsUrl(string urlStr) => Regex.IsMatch(urlStr, @"((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?");
+        private static bool IsUrl(string urlStr) => Regex.IsMatch(urlStr, @"^((https?)(:))?(\/\/)(\w*|\d*)");
     }
 }
