@@ -111,7 +111,6 @@ export default {
             //queryParams in query
             var postQueryParams = postParams.Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type)).ToList();
             var postQueryPath = postParams.Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
-        @*var queryParams = postParams.Where(q => q._in == "query").ToList();*@
         <text>  // @summary</text>
         <text>  @name :(@if (paramDto != "")
         {<text>params=@paramDto</text>}

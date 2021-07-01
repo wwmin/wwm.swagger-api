@@ -15,6 +15,7 @@
 - [√] The default template can be downloaded
 - [√] Build an auto-rebuild bat file
 - [√] You can use a local custom razor template
+- [√] Support query parameters in post request
 ## 📚 Documentation
 Install tool: dotnet tool install -g swagger2js_cli
 Update  tool：dotnet tool update -g swagger2js_cli
