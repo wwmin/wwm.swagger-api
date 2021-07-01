@@ -77,7 +77,7 @@ new Colorful.Formatter("swagger2js", Color.White)
             Action showVersionConsole = () =>
             {
                 Colorful.Console.WriteFormatted(@$"{version}
-",Color.White);
+", Color.White);
             };
 
             #endregion showInitConsole
@@ -92,7 +92,8 @@ new Colorful.Formatter("swagger2js", Color.White)
                 return;
             }
 
-            if (args[0] == "--version" || args[0] == "-v"){
+            if (args[0] == "--version" || args[0] == "-v")
+            {
                 showVersionConsole();
                 wait.Set();
                 return;
@@ -230,7 +231,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                         data.paths.Add(path, rawData.paths[path]);
                     }
                     string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data);
-                    razorResult = razorResult.Replace("&quot;", "\"");
+                    razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;","&");
                     var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
                     var fileFullPath = $"{ArgsOutput}{fileName}";
                     if (File.Exists(fileFullPath))

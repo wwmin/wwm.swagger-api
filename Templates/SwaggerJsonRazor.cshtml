@@ -18,6 +18,23 @@
         }
     };
 
+    Func<string, object> GetTypeDefaultJsonValue = type =>
+    {
+        switch (type)
+        {
+            case "string":
+                return "\"\"";
+            case "integer":
+                return 0;
+            case "number":
+                return 0.0;
+            case "array":
+                return "[]";
+            default:
+                return "\"\"";
+        }
+    };
+
     Func<string, string> GetParams = name =>
     {
         var res = "";
@@ -49,6 +66,7 @@ export default {
     var getPostName = "";
     var summary = "";
     var paramDto = "";
+
     if (gen.paths[path].get != null)
     {
         getPostName = "getFn";
@@ -67,6 +85,13 @@ export default {
                 paramDto = JsonSerializer.Serialize(paramDic);
             }
         }
+
+        <text>  // @summary</text>
+        <text>  @name :(@if (paramDto != "")
+        {<text>params=@paramDto</text>}
+    else
+    { <text>params</text>}, loadingFn)=>@getPostName ("@path",params, loadingFn),</text>
+    <text></text>
     }
     if (@gen.paths[path].post != null)
     {
@@ -79,8 +104,23 @@ export default {
             var dtoName = dtoNameList[dtoNameList.Length - 1];
             paramDto = GetParams(dtoName);
         }
-    }
 
+        var postParams = @gen.paths[path].post.parameters;
+        if (postParams != null && postParams.Length > 0)
+        {
+            //queryParams in query
+            var postQueryParams = postParams.Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type)).ToList();
+            var postQueryPath = postParams.Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
+        @*var queryParams = postParams.Where(q => q._in == "query").ToList();*@
+        <text>  // @summary</text>
+        <text>  @name :(@if (paramDto != "")
+        {<text>params=@paramDto</text>}
+    else
+    { <text>params</text>},@string.Join(',',postQueryParams), loadingFn)=>@getPostName ("@path?@string.Join('&', postQueryPath)",params, loadingFn),</text>
+    <text></text>
+}
+else
+{
     <text>  // @summary</text>
     <text>  @name :(@if (paramDto != "")
     {<text>params=@paramDto</text>}
@@ -88,4 +128,8 @@ else
 { <text>params</text>}, loadingFn)=>@getPostName ("@path",params, loadingFn),</text>
 <text></text>
 }
-    }
+
+
+}
+}
+}

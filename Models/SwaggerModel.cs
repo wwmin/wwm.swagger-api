@@ -38,6 +38,7 @@ namespace swagger2js_cli.Models
         public string summary { get; set; }
         public string operationId { get; set; }
         public Requestbody requestBody { get; set; }
+        public Parameter[] parameters { get; set; }
         public Responses responses { get; set; }
     }
 
