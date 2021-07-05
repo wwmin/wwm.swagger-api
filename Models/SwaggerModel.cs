@@ -30,6 +30,9 @@ namespace swagger2js_cli.Models
     {
         public Post post { get; set; }
         public Get get { get; set; }
+
+        public Post put { get; set; }
+        public Post delete { get; set; }
     }
 
     public class Post

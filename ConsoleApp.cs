@@ -39,7 +39,6 @@ new Colorful.Formatter(version, Color.SlateGray));
 
             //ArgsSwaggerJsonFileUrl = "swagger.json";
             ArgsReadKey = true;
-
             #region SetDirection
 
             Action<string> setArgsOutput = value =>
@@ -158,6 +157,15 @@ new Colorful.Formatter("swagger2js", Color.White)
                 ArgsRazor = GetDefaultRazorContent(assembly);
             }
             #endregion 读取内嵌的模板资源
+
+            #region 对Text.Json统一配置
+            JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+            {
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true,
+            };
+
+            #endregion
             //开始生成操作
             {
                 string jsondata = string.Empty;
@@ -168,7 +176,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                     var res = client.GetAsync(ArgsSwaggerJsonFileUrl).Result;
                     if (!res.IsSuccessStatusCode)
                     {
-                        Colorful.Console.WriteFormatted("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result), Color.Red);
+                        Colorful.Console.WriteFormatted("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result, jsonOptions), Color.Red);
                         throw new ArgumentException(res.StatusCode.ToString());
                     }
                     jsondata = res.Content.ReadAsStringAsync().Result;
@@ -187,9 +195,10 @@ new Colorful.Formatter("swagger2js", Color.White)
 
 
                 //$ref=>_ref , application/json=>application_json , multipart/form-data=>multipart_form_data
-                var cleanData = jsondata.Replace("$ref", "_ref").Replace("application/json", "application_json").Replace("multipart/form-data", "multipart_form_data");
-                SwaggerModel rawData = JsonSerializer.Deserialize<SwaggerModel>(cleanData);
-                SwaggerModel data = JsonSerializer.Deserialize<SwaggerModel>(cleanData);
+                var cleanData = jsondata.Replace("$ref", "_ref").Replace("application/json", "application_json").Replace("multipart/form-data", "multipart_form_data").Replace("\"in\"", "\"_in\"");
+
+                SwaggerModel rawData = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
+                SwaggerModel data = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
                 var paths = data.paths.Keys;
                 var keyList = paths.Select(p => p.Split("/")).ToList();
                 var k0 = keyList[0];
@@ -231,7 +240,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                         data.paths.Add(path, rawData.paths[path]);
                     }
                     string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data);
-                    razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;","&");
+                    razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;", "&");
                     var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
                     var fileFullPath = $"{ArgsOutput}{fileName}";
                     if (File.Exists(fileFullPath))
