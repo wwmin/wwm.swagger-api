@@ -195,7 +195,7 @@ new Colorful.Formatter("swagger2js", Color.White)
 
 
                 //$ref=>_ref , application/json=>application_json , multipart/form-data=>multipart_form_data
-                var cleanData = jsondata.Replace("$ref", "_ref").Replace("application/json", "application_json").Replace("multipart/form-data", "multipart_form_data").Replace("\"in\"", "\"_in\"");
+                var cleanData = jsondata.Replace("$ref", "_ref").Replace("application/json", "application_json").Replace("multipart/form-data", "multipart_form_data").Replace("\"in\"", "\"_in\"").Replace("\"default\"", "\"_default\"");
 
                 SwaggerModel rawData = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
                 SwaggerModel data = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);

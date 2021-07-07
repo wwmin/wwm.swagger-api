@@ -116,6 +116,7 @@ namespace swagger2js_cli.Models
         public string name { get; set; }
         public string _in { get; set; }
         public Schema3 schema { get; set; }
+        public string description { get; set; }
     }
 
     public class Schema3
@@ -123,6 +124,8 @@ namespace swagger2js_cli.Models
         public string type { get; set; }
         public string format { get; set; }
         public bool nullable { get; set; }
+        public string description { get; set; }
+        public object _default { get; set; }
     }
 
     public class Components

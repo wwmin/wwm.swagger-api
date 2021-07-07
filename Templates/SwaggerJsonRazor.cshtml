@@ -5,8 +5,12 @@
     var postFnString = "postFn";
     var putFnString = "putFn";
     var deleteFnString = "deleteFn";
-    Func<string, object> GetTypeDefaultValue = type =>
+    Func<string, object, object> GetTypeDefaultValue = (type, _default) =>
     {
+        if (_default != null)
+        {
+            return _default;
+        }
         switch (type)
         {
             case "string":
@@ -22,8 +26,9 @@
         }
     };
 
-    Func<string, object> GetTypeDefaultJsonValue = type =>
+    Func<string, object, object> GetTypeDefaultJsonValue = (type, _default) =>
     {
+        if (_default != null) return JsonSerializer.Serialize(_default);
         switch (type)
         {
             case "string":
@@ -50,7 +55,7 @@
         foreach (var key in keys)
         {
             object value = null;
-            value = GetTypeDefaultValue(p[key].type);
+            value = GetTypeDefaultValue(p[key].type, null);
             dic.Add(key, value);
         }
         res = JsonSerializer.Serialize(dic).Replace("\\", "").Replace("&quot;", "\"");
@@ -74,7 +79,6 @@ import {@string.Join(",", FnNames(gen.paths))} from "./api";
 export default {
 @foreach (var path in gen.paths.Keys)
 {
-    Console.WriteLine(path);
     var name = @path.Replace("/api/", "");
     var nameList = name.Split("/").ToList();
     nameList.Remove(nameList[0]);
@@ -95,7 +99,7 @@ export default {
         {
             foreach (var p in parameters)
             {
-                var value = GetTypeDefaultValue(p.schema.type);
+                var value = GetTypeDefaultValue(p.schema.type, p.schema._default);
                 paramDic.Add(p.name, value);
             }
             if (paramDic.Count > 0)
@@ -111,6 +115,7 @@ export default {
     { <text>params</text>}, loadingFn)=>@methodName ("@path",params, loadingFn),</text>
     <text></text>
 }
+
 if (@gen.paths[path].post != null)
 {
     methodName = postFnString;
@@ -127,7 +132,7 @@ if (@gen.paths[path].post != null)
     if (postParams != null && postParams.Length > 0)
     {
         //queryParams in query
-        var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type)).ToList();
+        var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
         var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
         <text>  // @summary</text>
         <text>  @name :(@if (paramDto != "")
@@ -163,7 +168,7 @@ var postParams = @gen.paths[path].put.parameters;
 if (postParams != null && postParams.Length > 0)
 {
 //queryParams in query
-var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type)).ToList();
+var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type,p.schema._default)).ToList();
 var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
 <text>  // @summary</text>
 <text>  @name :(@if (paramDto != "")
@@ -199,7 +204,7 @@ var postParams = @gen.paths[path].delete.parameters;
 if (postParams != null && postParams.Length > 0)
 {
 //queryParams in query
-var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type)).ToList();
+var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type,p.schema._default)).ToList();
 var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
 <text>  // @summary</text>
 <text>  @name :(@if (paramDto != "")
