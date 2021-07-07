@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "swagger2js_cli": {
+      "commandName": "Project",
+      "commandLineArgs": "-f https://www.dskjcloud.com/fire_api/swagger/v1/swagger.json -o dsjkApiJs"
+    }
+  }
+}

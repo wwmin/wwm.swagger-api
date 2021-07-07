@@ -181,7 +181,10 @@ else
 <text>  @name :(@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
-{ <text>@paramsString</text>}, loadingFn)=>@methodName ("@path",@paramsString, loadingFn),</text>
+{ <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
+{<text>"@path"</text>}
+else
+{ <text>`@matchedPathParamPath`</text>},@paramsString, loadingFn),</text>
 <text></text>
 }
 }
@@ -217,7 +220,10 @@ else
 <text>  @name :(@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
-{ <text>@paramsString</text>}, loadingFn)=>@methodName ("@path",@paramsString, loadingFn),</text>
+{ <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
+{<text>"@path"</text>}
+else
+{ <text>`@matchedPathParamPath`</text>},@paramsString, loadingFn),</text>
 <text></text>
 }
 }
@@ -253,7 +259,10 @@ else
 <text>  @name :(@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
-{ <text>@paramsString</text>}, loadingFn)=>@methodName ("@path",@paramsString, loadingFn),</text>
+{ <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
+{<text>"@path"</text>}
+else
+{ <text>`@matchedPathParamPath`</text>},@paramsString, loadingFn),</text>
 <text></text>
 }
 }
