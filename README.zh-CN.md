@@ -15,8 +15,8 @@
 - [√] 生成自动重建bat文件
 - [√] 可使用本地自定义razor模板
 - [√] 支持post请求中带有query参数
-- [] 支持delete请求
-- [] 支持put请求
+- [√] 支持delete请求
+- [√] 支持put请求
 - [] 支持path中带有变量参数请求
 - [] 支持生成TypeScript文件
 
