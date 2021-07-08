@@ -96,7 +96,8 @@
         return (pathName, matchedUrl);
     };
 }
-import {@string.Join(",", FnNames(gen.paths))} from "./api";
+import {@string.Join(", ", FnNames(gen.paths))} from "./api";
+
 export default {
 @foreach (var path in gen.paths.Keys)
 {
@@ -140,7 +141,7 @@ export default {
         }
 
         <text>  // @summary</text>
-        <text>  @name :(@if (paramDto != "")
+        <text>  @name: (@if (paramDto != "")
         {<text>@paramsString=@paramDto</text>}
     else
     { @paramsString }, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
@@ -169,7 +170,7 @@ if (postParams != null && postParams.Length > 0)
     var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
     var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
     <text>  // @summary</text>
-    <text>  @name :(@if (paramDto != "")
+    <text>  @name: (@if (paramDto != "")
     {<text>@paramsString=@paramDto</text>}
 else
 { <text>@paramsString</text>},@string.Join(',', methodQueryParams), loadingFn)=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString, loadingFn),</text>
@@ -178,7 +179,7 @@ else
 else
 {
 <text>  // @summary</text>
-<text>  @name :(@if (paramDto != "")
+<text>  @name: (@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
 { <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
@@ -208,7 +209,7 @@ if (postParams != null && postParams.Length > 0)
 var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
 var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
 <text>  // @summary</text>
-<text>  @name :(@if (paramDto != "")
+<text>  @name: (@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
 { <text>@paramsString</text>},@string.Join(',', methodQueryParams), loadingFn)=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString, loadingFn),</text>
@@ -217,7 +218,7 @@ else
 else
 {
 <text>  // @summary</text>
-<text>  @name :(@if (paramDto != "")
+<text>  @name: (@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
 { <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
@@ -247,7 +248,7 @@ if (postParams != null && postParams.Length > 0)
 var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
 var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
 <text>  // @summary</text>
-<text>  @name :(@if (paramDto != "")
+<text>  @name: (@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
 { <text>@paramsString</text>},@string.Join(',', methodQueryParams), loadingFn)=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString, loadingFn),</text>
@@ -256,7 +257,7 @@ else
 else
 {
 <text>  // @summary</text>
-<text>  @name :(@if (paramDto != "")
+<text>  @name: (@if (paramDto != "")
 {<text>@paramsString=@paramDto</text>}
 else
 { <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")

@@ -16,6 +16,11 @@
 - [√] Build an auto-rebuild bat file
 - [√] You can use a local custom razor template
 - [√] Support query parameters in post request
+- [√] Support delete request
+- [√] Support put request
+- [√] Support request with variable parameter in path
+- [] Support to generate TypeScript files
+
 ## 📚 Documentation
 Install tool: dotnet tool install -g swagger2js_cli
 Update  tool：dotnet tool update -g swagger2js_cli
