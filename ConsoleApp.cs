@@ -27,6 +27,8 @@ namespace swagger2js_cli
         private bool HasEndFn { get; }
         private string EndFnString { get; }
 
+        private string ExcludePattern { get; }
+
         public ConsoleApp(string[] args, ManualResetEvent wait)
         {
             var assembly = typeof(ConsoleApp).Assembly;
@@ -72,6 +74,7 @@ new Colorful.Formatter(version, Color.SlateGray));
     --DownLoadRazor -d  获取默认的razor模板到本地,默认为0 如: --DownLoadRazor 1
     --HasEndFn      在每个函数尾部添加一个endFn,以方便接口自定义后续操作
     --EndFnString   自定义接口后续操作的方法名,默认为'endFn',注意:只有在--HasEndFn 1时生效
+    --ExcludePattern 排除的路径名字符串或正则表达式(匹配后排除)
 ", Color.SlateGray,
 new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
 new Colorful.Formatter("swagger2js", Color.White)
@@ -152,6 +155,12 @@ new Colorful.Formatter("swagger2js", Color.White)
                         break;
                     case "--endfnstring":
                         EndFnString = args[a + 1].Trim();
+                        a++;
+                        break;
+                    case "--excludepattern":
+                        var patternString = args[a + 1];
+                        //ExcludePattern = new Regex(patternString);
+                        ExcludePattern = patternString;
                         a++;
                         break;
                     default:
@@ -250,22 +259,41 @@ new Colorful.Formatter("swagger2js", Color.White)
                     data.paths = new Dictionary<string, PathModel>();
                     foreach (var path in groupDic[key])
                     {
-                        data.paths.Add(path, rawData.paths[path]);
+                        //排除路径
+                        if (ExcludePattern == null)
+                        {
+                            data.paths.Add(path, rawData.paths[path]);
+                        }
+                        else
+                        {
+                            var match = Regex.Match(path, ExcludePattern, RegexOptions.IgnoreCase);
+                            if (!match.Success)
+                            {
+                                data.paths.Add(path, rawData.paths[path]);
+                            }
+                        }
                     }
-                    DynamicViewBag dynamicViewBag = new DynamicViewBag();
-                    dynamicViewBag.AddValue("HasEndFn", HasEndFn);
-                    dynamicViewBag.AddValue("EndFnString", EndFnString);
-                    string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data, dynamicViewBag);
-                    razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;", "&");
                     var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
-                    var fileFullPath = $"{ArgsOutput}{fileName}";
-                    if (File.Exists(fileFullPath))
+                    if (data.paths.Count > 0)
                     {
-                        File.Delete(fileFullPath);
+                        DynamicViewBag dynamicViewBag = new DynamicViewBag();
+                        dynamicViewBag.AddValue("HasEndFn", HasEndFn);
+                        dynamicViewBag.AddValue("EndFnString", EndFnString);
+                        string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data, dynamicViewBag);
+                        razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;", "&");
+                        var fileFullPath = $"{ArgsOutput}{fileName}";
+                        if (File.Exists(fileFullPath))
+                        {
+                            File.Delete(fileFullPath);
+                        }
+                        File.WriteAllText(fileFullPath, razorResult);
+                        outputCounter++;
+                        Colorful.Console.WriteFormatted($"\r\n[{outputCounter}]:{fileName}", Color.BurlyWood);
                     }
-                    File.WriteAllText(fileFullPath, razorResult);
-                    outputCounter++;
-                    Colorful.Console.WriteFormatted($"\r\n[{outputCounter}]:{fileName}", Color.BurlyWood);
+                    else
+                    {
+                        Colorful.Console.WriteFormatted($"\r\n跳过:{fileName}", Color.BurlyWood);
+                    }
                 }
 
                 #region rebuild.bat

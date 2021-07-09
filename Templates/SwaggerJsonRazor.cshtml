@@ -10,7 +10,6 @@
     var matchPathParameterPattern = @"({(\w*)})";
     var endDefaultFn = ", endFn";
     var viewBag = ViewBag as RazorEngine.Templating.DynamicViewBag;
-    Console.WriteLine(string.Join(",", viewBag.GetDynamicMemberNames()));
     bool HasEndFn = ((dynamic)viewBag).HasEndFn;
     string EndFnString = ((dynamic)viewBag).EndFnString;
     if (HasEndFn)
