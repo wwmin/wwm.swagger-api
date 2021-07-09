@@ -8,6 +8,8 @@
     var putFnString = "putFn";
     var deleteFnString = "deleteFn";
     var matchPathParameterPattern = @"({(\w*)})";
+    var endLoadingFn = ", loadingFn";
+    var hasEndLoadingFn = false;
     Func<string, object, object> GetTypeDefaultValue = (type, _default) =>
     {
         if (_default != null)
@@ -121,6 +123,11 @@ export default {
     var summary = "";
     var paramDto = "";
 
+
+    swagger2js_cli.Models.Post otherPathValue = null;
+    if (gen.paths[path].post != null) otherPathValue = gen.paths[path].post;
+    else if (gen.paths[path].put != null) otherPathValue = gen.paths[path].put;
+    else if (gen.paths[path].delete != null) otherPathValue = gen.paths[path].delete;
     if (gen.paths[path].get != null)
     {
         methodName = getFnString;
@@ -140,130 +147,55 @@ export default {
             }
         }
 
-        <text>  // @summary</text>
+        <text>  //0 @summary</text>
         <text>  @name: (@if (paramDto != "")
         {<text>@paramsString=@paramDto</text>}
     else
-    { @paramsString }, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
-    {<text>"@path"</text>}
+    { @paramsString }@if (hasEndLoadingFn){<text>@endLoadingFn</text>})=>@methodName (@if (matchedPathParamPath == ""){<text>"@path"</text>}
+    else
+    { <text>`@matchedPathParamPath`</text>},@paramsString @if (hasEndLoadingFn)
+    {<text>endLoadingFn</text>}),</text> 
+    <text></text>
+    }
+    else if (otherPathValue != null)
+    {
+        methodName = postFnString;
+        summary = otherPathValue.summary?.Replace("\r\n", " ");
+        var _ref = otherPathValue.requestBody?.content?.application_json?.schema?._ref;
+        if (_ref != null)
+        {
+            var dtoNameList = _ref.Split("/");
+            var dtoName = dtoNameList[dtoNameList.Length - 1];
+            paramDto = GetParams(dtoName);
+        }
+
+        var postParams = otherPathValue.parameters;
+        if (postParams != null && postParams.Length > 0)
+        {
+            //queryParams in query
+            var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
+            var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
+        <text>  //1 @summary</text>
+        <text>  @name: (@if (paramDto != "")
+        {<text>@paramsString=@paramDto</text>}
+    else
+    { <text>@paramsString</text>},@string.Join(',', methodQueryParams)@if (hasEndLoadingFn)
+    {<text>@endLoadingFn</text>})=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString@if (hasEndLoadingFn)
+    {<text>@endLoadingFn</text>}),</text>
+    <text></text>
+}
 else
-{ <text>`@matchedPathParamPath`</text>},@paramsString, loadingFn),</text>
-<text></text>
-}
-
-if (@gen.paths[path].post != null)
 {
-methodName = postFnString;
-summary = @gen.paths[path].post.summary?.Replace("\r\n", " ");
-var _ref = @gen.paths[path].post.requestBody?.content?.application_json?.schema?._ref;
-if (_ref != null)
-{
-    var dtoNameList = _ref.Split("/");
-    var dtoName = dtoNameList[dtoNameList.Length - 1];
-    paramDto = GetParams(dtoName);
-}
-
-var postParams = @gen.paths[path].post.parameters;
-if (postParams != null && postParams.Length > 0)
-{
-    //queryParams in query
-    var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
-    var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
-    <text>  // @summary</text>
+    <text>  //2 @summary</text>
     <text>  @name: (@if (paramDto != "")
     {<text>@paramsString=@paramDto</text>}
 else
-{ <text>@paramsString</text>},@string.Join(',', methodQueryParams), loadingFn)=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString, loadingFn),</text>
-<text></text>
-}
+{ <text>@paramsString</text>}@if (hasEndLoadingFn)
+    {<text>@endLoadingFn</text>})=>@methodName (@if (matchedPathParamPath == "")
+    {<text>"@path"</text>}
 else
-{
-<text>  // @summary</text>
-<text>  @name: (@if (paramDto != "")
-{<text>@paramsString=@paramDto</text>}
-else
-{ <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
-{<text>"@path"</text>}
-else
-{ <text>`@matchedPathParamPath`</text>},@paramsString, loadingFn),</text>
-<text></text>
-}
-}
-
-if (@gen.paths[path].put != null)
-{
-methodName = putFnString;
-summary = @gen.paths[path].put.summary?.Replace("\r\n", " ");
-var _ref = @gen.paths[path].put.requestBody?.content?.application_json?.schema?._ref;
-if (_ref != null)
-{
-var dtoNameList = _ref.Split("/");
-var dtoName = dtoNameList[dtoNameList.Length - 1];
-paramDto = GetParams(dtoName);
-}
-
-var postParams = @gen.paths[path].put.parameters;
-if (postParams != null && postParams.Length > 0)
-{
-//queryParams in query
-var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
-var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
-<text>  // @summary</text>
-<text>  @name: (@if (paramDto != "")
-{<text>@paramsString=@paramDto</text>}
-else
-{ <text>@paramsString</text>},@string.Join(',', methodQueryParams), loadingFn)=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString, loadingFn),</text>
-<text></text>
-}
-else
-{
-<text>  // @summary</text>
-<text>  @name: (@if (paramDto != "")
-{<text>@paramsString=@paramDto</text>}
-else
-{ <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
-{<text>"@path"</text>}
-else
-{ <text>`@matchedPathParamPath`</text>},@paramsString, loadingFn),</text>
-<text></text>
-}
-}
-
-if (@gen.paths[path].delete != null)
-{
-methodName = postFnString;
-summary = @gen.paths[path].delete.summary?.Replace("\r\n", " ");
-var _ref = @gen.paths[path].delete.requestBody?.content?.application_json?.schema?._ref;
-if (_ref != null)
-{
-var dtoNameList = _ref.Split("/");
-var dtoName = dtoNameList[dtoNameList.Length - 1];
-paramDto = GetParams(dtoName);
-}
-
-var postParams = @gen.paths[path].delete.parameters;
-if (postParams != null && postParams.Length > 0)
-{
-//queryParams in query
-var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
-var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
-<text>  // @summary</text>
-<text>  @name: (@if (paramDto != "")
-{<text>@paramsString=@paramDto</text>}
-else
-{ <text>@paramsString</text>},@string.Join(',', methodQueryParams), loadingFn)=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString, loadingFn),</text>
-<text></text>
-}
-else
-{
-<text>  // @summary</text>
-<text>  @name: (@if (paramDto != "")
-{<text>@paramsString=@paramDto</text>}
-else
-{ <text>@paramsString</text>}, loadingFn)=>@methodName (@if (matchedPathParamPath == "")
-{<text>"@path"</text>}
-else
-{ <text>`@matchedPathParamPath`</text>},@paramsString, loadingFn),</text>
+{ <text>`@matchedPathParamPath`</text>},@paramsString@if (hasEndLoadingFn)
+{<text>@endLoadingFn</text>}),</text>
 <text></text>
 }
 }
