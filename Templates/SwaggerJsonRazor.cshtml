@@ -8,8 +8,17 @@
     var putFnString = "putFn";
     var deleteFnString = "deleteFn";
     var matchPathParameterPattern = @"({(\w*)})";
-    var endLoadingFn = ", loadingFn";
-    var hasEndLoadingFn = false;
+    var endDefaultFn = ", endFn";
+    var viewBag = ViewBag as RazorEngine.Templating.DynamicViewBag;
+    Console.WriteLine(string.Join(",", viewBag.GetDynamicMemberNames()));
+    bool HasEndFn = ((dynamic)viewBag).HasEndFn;
+    string EndFnString = ((dynamic)viewBag).EndFnString;
+    if (HasEndFn)
+    {
+        if (string.IsNullOrWhiteSpace(EndFnString)) EndFnString = endDefaultFn;
+        else EndFnString = ", " + EndFnString;
+    }
+    Console.WriteLine(HasEndFn);
     Func<string, object, object> GetTypeDefaultValue = (type, _default) =>
     {
         if (_default != null)
@@ -151,37 +160,39 @@ export default {
         <text>  @name: (@if (paramDto != "")
         {<text>@paramsString=@paramDto</text>}
     else
-    { @paramsString }@if (hasEndLoadingFn){<text>@endLoadingFn</text>})=>@methodName (@if (matchedPathParamPath == ""){<text>"@path"</text>}
+    { @paramsString }@if (HasEndFn)
+        {<text>@EndFnString</text>})=>@methodName (@if (matchedPathParamPath == "")
+        {<text>"@path"</text>}
     else
-    { <text>`@matchedPathParamPath`</text>},@paramsString @if (hasEndLoadingFn)
-    {<text>endLoadingFn</text>}),</text> 
+    { <text>`@matchedPathParamPath`</text>},@paramsString @if (HasEndFn)
+    {<text>@EndFnString</text>}),</text>
     <text></text>
-    }
-    else if (otherPathValue != null)
+}
+else if (otherPathValue != null)
+{
+    methodName = postFnString;
+    summary = otherPathValue.summary?.Replace("\r\n", " ");
+    var _ref = otherPathValue.requestBody?.content?.application_json?.schema?._ref;
+    if (_ref != null)
     {
-        methodName = postFnString;
-        summary = otherPathValue.summary?.Replace("\r\n", " ");
-        var _ref = otherPathValue.requestBody?.content?.application_json?.schema?._ref;
-        if (_ref != null)
-        {
-            var dtoNameList = _ref.Split("/");
-            var dtoName = dtoNameList[dtoNameList.Length - 1];
-            paramDto = GetParams(dtoName);
-        }
+        var dtoNameList = _ref.Split("/");
+        var dtoName = dtoNameList[dtoNameList.Length - 1];
+        paramDto = GetParams(dtoName);
+    }
 
-        var postParams = otherPathValue.parameters;
-        if (postParams != null && postParams.Length > 0)
-        {
-            //queryParams in query
-            var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
-            var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
+    var postParams = otherPathValue.parameters;
+    if (postParams != null && postParams.Length > 0)
+    {
+        //queryParams in query
+        var methodQueryParams = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + GetTypeDefaultJsonValue(p.schema.type, p.schema._default)).ToList();
+        var methodQueryPath = postParams.Where(p => p._in == "query").Select(p => p.name + "=" + "\"+" + p.name + "+\"").ToList();
         <text>  //1 @summary</text>
         <text>  @name: (@if (paramDto != "")
         {<text>@paramsString=@paramDto</text>}
     else
-    { <text>@paramsString</text>},@string.Join(',', methodQueryParams)@if (hasEndLoadingFn)
-    {<text>@endLoadingFn</text>})=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString@if (hasEndLoadingFn)
-    {<text>@endLoadingFn</text>}),</text>
+    { <text>@paramsString</text>},@string.Join(',', methodQueryParams)@if (HasEndFn)
+    {<text>@EndFnString</text>})=>@methodName ("@path?@string.Join('&', methodQueryPath)",@paramsString@if (HasEndFn)
+    {<text>@EndFnString</text>}),</text>
     <text></text>
 }
 else
@@ -190,12 +201,12 @@ else
     <text>  @name: (@if (paramDto != "")
     {<text>@paramsString=@paramDto</text>}
 else
-{ <text>@paramsString</text>}@if (hasEndLoadingFn)
-    {<text>@endLoadingFn</text>})=>@methodName (@if (matchedPathParamPath == "")
+{ <text>@paramsString</text>}@if (HasEndFn)
+    {<text>@EndFnString</text>})=>@methodName (@if (matchedPathParamPath == "")
     {<text>"@path"</text>}
 else
-{ <text>`@matchedPathParamPath`</text>},@paramsString@if (hasEndLoadingFn)
-{<text>@endLoadingFn</text>}),</text>
+{ <text>`@matchedPathParamPath`</text>},@paramsString@if (HasEndFn)
+{<text>@EndFnString</text>}),</text>
 <text></text>
 }
 }

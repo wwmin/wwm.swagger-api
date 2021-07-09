@@ -24,6 +24,9 @@ namespace swagger2js_cli
         private bool ArgsReadKey { get; }
         private bool ArgsGenRebuildFile { get; }
 
+        private bool HasEndFn { get; }
+        private string EndFnString { get; }
+
         public ConsoleApp(string[] args, ManualResetEvent wait)
         {
             var assembly = typeof(ConsoleApp).Assembly;
@@ -67,6 +70,8 @@ new Colorful.Formatter(version, Color.SlateGray));
     --Output 或 -o         保存路径，默认为当前 shell 所在目录 如:--Output apiFiles
     --GenRebuildFile 或 -g 是否输出""重新生成bat""文件,默认为0 如:--GenRebuildFile 1
     --DownLoadRazor -d  获取默认的razor模板到本地,默认为0 如: --DownLoadRazor 1
+    --HasEndFn      在每个函数尾部添加一个endFn,以方便接口自定义后续操作
+    --EndFnString   自定义接口后续操作的方法名,默认为'endFn',注意:只有在--HasEndFn 1时生效
 ", Color.SlateGray,
 new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
 new Colorful.Formatter("swagger2js", Color.White)
@@ -139,6 +144,14 @@ new Colorful.Formatter("swagger2js", Color.White)
                     case "-g":
                     case "--genrebuildfile":
                         ArgsGenRebuildFile = args[a + 1].Trim() == "1";
+                        a++;
+                        break;
+                    case "--hasendfn":
+                        HasEndFn = args[a + 1].Trim() == "1";
+                        a++;
+                        break;
+                    case "--endfnstring":
+                        EndFnString = args[a + 1].Trim();
                         a++;
                         break;
                     default:
@@ -239,7 +252,10 @@ new Colorful.Formatter("swagger2js", Color.White)
                     {
                         data.paths.Add(path, rawData.paths[path]);
                     }
-                    string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data);
+                    DynamicViewBag dynamicViewBag = new DynamicViewBag();
+                    dynamicViewBag.AddValue("HasEndFn", HasEndFn);
+                    dynamicViewBag.AddValue("EndFnString", EndFnString);
+                    string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data, dynamicViewBag);
                     razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;", "&");
                     var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
                     var fileFullPath = $"{ArgsOutput}{fileName}";
