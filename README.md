@@ -19,6 +19,8 @@
 - [√] Support delete request
 - [√] Support put request
 - [√] Support request with variable parameter in path
+- [√] Method name for subsequent operations of the custom interface
+- [√] Support excluded path name string or regular expression (exclude after match)
 - [] Support to generate TypeScript files
 
 ## 📚 Documentation
