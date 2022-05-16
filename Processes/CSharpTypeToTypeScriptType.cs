@@ -15,7 +15,6 @@ public static class CSharpTypeToTypeScriptType
     /// <returns></returns>
     public static string Convert(string? refString, string csharpType)
     {
-        Console.WriteLine(csharpType);
         if (csharpType == null)
         {
             return "any";
@@ -76,20 +75,12 @@ public static class CSharpTypeToTypeScriptType
         }
     }
 
-
-    public static string Convert(string? refString, string csharpType, bool? isNullable)
-    {
-        if (isNullable != null && isNullable == true)
-        {
-            return Convert(refString, csharpType) + " | null";
-        }
-        else
-        {
-            return Convert(refString, csharpType);
-        }
-    }
-
-    public static string? ParseRefType(string refString)
+    /// <summary>
+    /// 引用类型取最后一个值
+    /// </summary>
+    /// <param name="refString"></param>
+    /// <returns></returns>
+    public static string? ParseRefType(string? refString)
     {
         if (string.IsNullOrEmpty(refString))
         {
@@ -98,6 +89,28 @@ public static class CSharpTypeToTypeScriptType
         //取ref string的最后一个
         string[] refs = refString.Split('/');
         return refs[refs.Length - 1];
+    }
+
+    /// <summary>
+    /// 值类型变成引用类型后的类型错误转换
+    /// </summary>
+    /// <param name="refString"></param>
+    /// <returns></returns>
+    public static (string content, bool isValue) ParseValueTypeFromRef(string refString)
+    {
+        if (refString.EndsWith("_String") || refString.EndsWith("_Byte[]"))
+        {
+            return ("string", true);
+        }
+        if (refString.EndsWith("_Int32") || refString.EndsWith("_Double") || refString.EndsWith("_Long") || refString.EndsWith("_Floa") || refString.EndsWith("_Decimal"))
+        {
+            return ("number", true);
+        }
+        if (refString.EndsWith("_Boolean"))
+        {
+            return ("boolean", true);
+        }
+        return (refString, false);
     }
     #endregion
 

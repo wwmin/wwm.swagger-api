@@ -137,6 +137,7 @@ public class Parameter
 {
     public string name { get; set; }
     public string @in { get; set; }
+    public bool required { get; set; }
     public PropertyModel schema { get; set; }
     public string description { get; set; }
 }

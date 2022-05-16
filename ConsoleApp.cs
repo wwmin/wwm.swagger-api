@@ -220,7 +220,7 @@ new Colorful.Formatter("swagger2js", Color.White)
             #region 处理json
             //$ref=>@ref
             jsondata = jsondata.Replace("$ref", "_ref");
-            JsonProcess.ParseSwaggerJson(jsondata);
+            TypeScriptInterfaceProcess.ParseSwaggerJson(jsondata);
             #endregion
 
             //$ref=>_ref , application/json=>application_json , multipart/form-data=>multipart_form_data
@@ -330,7 +330,7 @@ new Colorful.Formatter("swagger2js", Color.White)
 
             if (ArgsReadKey)
             {
-                Console.WriteLine("\r\n按任意键退出");
+                //Console.WriteLine("\r\n按任意键退出");
                 //Console.ReadKey();
             }
             wait.Set();

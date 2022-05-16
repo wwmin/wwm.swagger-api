@@ -33,6 +33,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Processes\新文件夹\**" />
+	  <EmbeddedResource Remove="Processes\新文件夹\**" />
+	  <None Remove="Processes\新文件夹\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<EmbeddedResource Remove="Templates\HelloWorld.cshtml" />
 	</ItemGroup>
 
@@ -44,10 +50,6 @@
 		<EmbeddedResource Update="Templates\SwaggerJsonRazor.cshtml">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</EmbeddedResource>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Processes\新文件夹\" />
 	</ItemGroup>
 
 </Project>
