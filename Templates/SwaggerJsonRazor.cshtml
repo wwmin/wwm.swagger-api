@@ -132,7 +132,7 @@ export default {
     var paramDto = "";
 
 
-    swagger2js_cli.Models.Post otherPathValue = null;
+    swagger2js_cli.Models.HttpRequestModel otherPathValue = null;
     if (gen.paths[path].post != null) otherPathValue = gen.paths[path].post;
     else if (gen.paths[path].put != null) otherPathValue = gen.paths[path].put;
     else if (gen.paths[path].delete != null) otherPathValue = gen.paths[path].delete;

@@ -1,4 +1,9 @@
-﻿using System;
+﻿using RazorEngine.Templating;
+
+using swagger2js_cli.Models;
+using swagger2js_cli.Processes;
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -8,33 +13,31 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
-using RazorEngine.Templating;
-using swagger2js_cli.Models;
 
-namespace swagger2js_cli
+namespace swagger2js_cli;
+
+/// <summary>
+/// Console App
+/// </summary>
+public class ConsoleApp
 {
-    /// <summary>
-    ///
-    /// </summary>
-    public class ConsoleApp
+    private string ArgsSwaggerJsonFileUrl { get; }
+    private string ArgsRazor { get; }
+    internal string ArgsOutput { get; private set; }
+    private bool ArgsReadKey { get; }
+    private bool ArgsGenRebuildFile { get; }
+
+    private bool HasEndFn { get; }
+    private string EndFnString { get; }
+
+    private string ExcludePattern { get; }
+
+    public ConsoleApp(string[] args, ManualResetEvent wait)
     {
-        private string ArgsSwaggerJsonFileUrl { get; }
-        private string ArgsRazor { get; }
-        internal string ArgsOutput { get; private set; }
-        private bool ArgsReadKey { get; }
-        private bool ArgsGenRebuildFile { get; }
-
-        private bool HasEndFn { get; }
-        private string EndFnString { get; }
-
-        private string ExcludePattern { get; }
-
-        public ConsoleApp(string[] args, ManualResetEvent wait)
-        {
-            var assembly = typeof(ConsoleApp).Assembly;
-            var version = "v" + string.Join(".", assembly.GetName().Version.ToString().Split(".").Where((a, b) => b <= 2));
-            Colorful.Console.WriteAscii("swagger2js", Color.Violet);
-            Colorful.Console.WriteFormatted(@"
+        var assembly = typeof(ConsoleApp).Assembly;
+        var version = "v" + string.Join(".", assembly.GetName().Version.ToString().Split(".").Where((a, b) => b <= 2));
+        Colorful.Console.WriteAscii("swagger2js", Color.Violet);
+        Colorful.Console.WriteFormatted(@"
 # Github # {0} {1}
 ", Color.SlateGray,
 new Colorful.Formatter("https://github.com/wwmin/swagger2js_cli", Color.DeepSkyBlue),
@@ -42,27 +45,27 @@ new Colorful.Formatter(version, Color.SlateGray));
 
 
 
-            //ArgsSwaggerJsonFileUrl = "swagger.json";
-            ArgsReadKey = true;
-            #region SetDirection
+        //ArgsSwaggerJsonFileUrl = "swagger.json";
+        ArgsReadKey = true;
+        #region SetDirection
 
-            Action<string> setArgsOutput = value =>
-            {
-                ArgsOutput = value;
-                ArgsOutput = ArgsOutput.Trim().TrimEnd('/', '\\');
-                ArgsOutput += ArgsOutput.Contains("\\") ? "\\" : "/";
-                if (!Directory.Exists(ArgsOutput))
-                    Directory.CreateDirectory(ArgsOutput);
-            };
-            setArgsOutput(Directory.GetCurrentDirectory());
+        Action<string> setArgsOutput = value =>
+        {
+            ArgsOutput = value;
+            ArgsOutput = ArgsOutput.Trim().TrimEnd('/', '\\');
+            ArgsOutput += ArgsOutput.Contains("\\") ? "\\" : "/";
+            if (!Directory.Exists(ArgsOutput))
+                Directory.CreateDirectory(ArgsOutput);
+        };
+        setArgsOutput(Directory.GetCurrentDirectory());
 
-            #endregion SetDirection
+        #endregion SetDirection
 
-            #region showInitConsole
+        #region showInitConsole
 
-            Action showInitConsole = () =>
-            {
-                Colorful.Console.WriteFormatted(@"
+        Action showInitConsole = () =>
+        {
+            Colorful.Console.WriteFormatted(@"
      {0}
      更新工具：dotnet tool update -g swagger2js_cli
  # 快速开始 #
@@ -79,280 +82,283 @@ new Colorful.Formatter(version, Color.SlateGray));
 new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
 new Colorful.Formatter("swagger2js", Color.White)
 );
-            };
+        };
 
-            Action showVersionConsole = () =>
-            {
-                Colorful.Console.WriteFormatted(@$"{version}
-", Color.White);
-            };
-
-            #endregion showInitConsole
-
-            #region GetArguments
-
-            string args0 = args[0].Trim().ToLower();
-            if (args[0] == "?" || args0 == "--help" || args0 == "-help" || args0 == "-h")
-            {
-                showInitConsole();
-                wait.Set();
-                return;
-            }
-
-            if (args[0] == "--version" || args[0] == "-v")
-            {
-                showVersionConsole();
-                wait.Set();
-                return;
-            }
-            for (int a = 0; a < args.Length; a++)
-            {
-                switch (args[a].Trim().ToLower())
-                {
-                    case "-r":
-                    case "--razor":
-                        ArgsRazor = File.ReadAllText(args[a + 1]);
-                        a++;
-                        break;
-                    case "-f":
-                    case "--fileurl":
-                        ArgsSwaggerJsonFileUrl = args[a + 1];
-                        a++;
-                        break;
-                    case "-k":
-                    case "--readkey":
-                        ArgsReadKey = args[a + 1].Trim() == "1";
-                        a++;
-                        break;
-                    case "-o":
-                    case "--output":
-                        setArgsOutput(args[a + 1]);
-                        a++;
-                        break;
-                    case "-d":
-                    case "--downloadrazor":
-                        if (args[a + 1].Trim() == "1")
-                        {
-                            ArgsRazor = GetDefaultRazorContent(assembly);
-                            var swaggerJsonRazorCshtml = "SwaggerJsonRazor.cshtml";
-                            if (File.Exists(swaggerJsonRazorCshtml))
-                            {
-                                File.Delete(swaggerJsonRazorCshtml);
-                            }
-                            File.WriteAllText(swaggerJsonRazorCshtml, ArgsRazor);
-                            Console.WriteLine("文件已下载:" + swaggerJsonRazorCshtml);
-                        }
-                        a++;
-                        break;
-                    case "-g":
-                    case "--genrebuildfile":
-                        ArgsGenRebuildFile = args[a + 1].Trim() == "1";
-                        a++;
-                        break;
-                    case "--hasendfn":
-                        HasEndFn = args[a + 1].Trim() == "1";
-                        a++;
-                        break;
-                    case "--endfnstring":
-                        EndFnString = args[a + 1].Trim();
-                        a++;
-                        break;
-                    case "--excludepattern":
-                        var patternString = args[a + 1];
-                        //ExcludePattern = new Regex(patternString);
-                        ExcludePattern = patternString;
-                        a++;
-                        break;
-                    default:
-                        //showInitConsole();
-                        throw new ArgumentException($"错误的参数设置：{args[a]}");
-                }
-            }
-            if (string.IsNullOrWhiteSpace(ArgsSwaggerJsonFileUrl))
-            {
-                throw new ArgumentException($"错误的参数设置：--FileUrl 参数不能为空");
-            }
-            #endregion GetArguments
-            #region 读取内嵌的模板资源
-            if (ArgsRazor == null)
-            {
-                ArgsRazor = GetDefaultRazorContent(assembly);
-            }
-            #endregion 读取内嵌的模板资源
-
-            #region 对Text.Json统一配置
-            JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-            {
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true,
-            };
-
-            #endregion
-            //开始生成操作
-            {
-                string jsondata = string.Empty;
-                #region 读取json文件内容
-                if (IsUrl(ArgsSwaggerJsonFileUrl))
-                {
-                    var client = new HttpClient();
-                    var res = client.GetAsync(ArgsSwaggerJsonFileUrl).Result;
-                    if (!res.IsSuccessStatusCode)
-                    {
-                        Colorful.Console.WriteFormatted("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result, jsonOptions), Color.Red);
-                        throw new ArgumentException(res.StatusCode.ToString());
-                    }
-                    jsondata = res.Content.ReadAsStringAsync().Result;
-                }
-                else if (File.Exists(ArgsSwaggerJsonFileUrl))
-                {
-                    jsondata = File.ReadAllText(ArgsSwaggerJsonFileUrl);
-                }
-                else
-                {
-                    throw new ArgumentException($"错误的参数设置：请检查 --FileUrl 参数的正确性");
-                }
-
-                Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取文件内容完毕\r\n", Color.DarkGreen);
-                #endregion
-
-
-                //$ref=>_ref , application/json=>application_json , multipart/form-data=>multipart_form_data
-                var cleanData = jsondata.Replace("$ref", "_ref").Replace("application/json", "application_json").Replace("multipart/form-data", "multipart_form_data").Replace("\"in\"", "\"_in\"").Replace("\"default\"", "\"_default\"");
-
-                SwaggerModel rawData = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
-                SwaggerModel data = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
-                var paths = data.paths.Keys;
-                var keyList = paths.Select(p => p.Split("/")).ToList();
-                var k0 = keyList[0];
-                var minLength = keyList.Min(p => p.Length);
-                var sameRoute = new List<string>();
-                for (int i = 0; i < minLength; i++)
-                {
-                    if (keyList.All(l => l[i] == k0[i]))
-                    {
-                        sameRoute.Add(k0[i]);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                var groupDic = new Dictionary<string, List<string>>();
-                keyList.ForEach(k =>
-                {
-                    var diffName = k[sameRoute.Count];
-                    if (groupDic.ContainsKey(diffName))
-                    {
-                        var v = groupDic[diffName];
-
-                        groupDic[diffName].Add(string.Join("/", k));
-                    }
-                    else
-                    {
-                        groupDic.Add(diffName, new List<string>() { string.Join("/", k) });
-                    }
-                });
-                int outputCounter = 0;
-                var razorId = Guid.NewGuid().ToString("N");
-                foreach (var key in groupDic.Keys)
-                {
-                    data.paths = new Dictionary<string, PathModel>();
-                    foreach (var path in groupDic[key])
-                    {
-                        //排除路径
-                        if (ExcludePattern == null)
-                        {
-                            data.paths.Add(path, rawData.paths[path]);
-                        }
-                        else
-                        {
-                            var match = Regex.Match(path, ExcludePattern, RegexOptions.IgnoreCase);
-                            if (!match.Success)
-                            {
-                                data.paths.Add(path, rawData.paths[path]);
-                            }
-                        }
-                    }
-                    var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
-                    if (data.paths.Count > 0)
-                    {
-                        DynamicViewBag dynamicViewBag = new DynamicViewBag();
-                        dynamicViewBag.AddValue("HasEndFn", HasEndFn);
-                        dynamicViewBag.AddValue("EndFnString", EndFnString);
-                        string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data, dynamicViewBag);
-                        razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;", "&");
-                        var fileFullPath = $"{ArgsOutput}{fileName}";
-                        if (File.Exists(fileFullPath))
-                        {
-                            File.Delete(fileFullPath);
-                        }
-                        File.WriteAllText(fileFullPath, razorResult);
-                        outputCounter++;
-                        Colorful.Console.WriteFormatted($"\r\n[{outputCounter}]:{fileName}", Color.BurlyWood);
-                    }
-                    else
-                    {
-                        Colorful.Console.WriteFormatted($"\r\n跳过:{fileName}", Color.BurlyWood);
-                    }
-                }
-
-                #region rebuild.bat
-                if (ArgsGenRebuildFile)
-                {
-                    var rebuildBatName = "_重新生成.bat";
-                    var rebuildBat = ArgsOutput + rebuildBatName;
-                    if (File.Exists(rebuildBat) == false)
-                    {
-                        var razorCshtmlName = "__razor.cshtml.txt";
-                        var razorCshtml = ArgsOutput + razorCshtmlName;
-                        if (File.Exists(razorCshtml) == false)
-                        {
-                            File.WriteAllText(razorCshtml, ArgsRazor);
-                            Colorful.Console.WriteFormatted("\r\nOUT -> " + razorCshtml + "    (以后) 编辑它自定义模板生成\r\n", Color.Magenta);
-                            outputCounter++;
-                        }
-
-                        File.WriteAllText(rebuildBat, $@"swagger2js --Razor ""{razorCshtmlName}"" --FileUrl ""{ArgsSwaggerJsonFileUrl}""");
-                        Colorful.Console.WriteFormatted("OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
-                        outputCounter++;
-                    }
-                }
-                #endregion
-
-                Colorful.Console.WriteFormatted($"\r\n\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
-
-                if (ArgsReadKey)
-                {
-                    Console.WriteLine("\r\n按任意键退出");
-                    //Console.ReadKey();
-                }
-                wait.Set();
-            }
-        }
-
-        private static string GetDefaultRazorContent(Assembly assembly)
+        Action showVersionConsole = () =>
         {
-            //此方式在发布之后工具位置会找不到资源
-            //ArgsRazor = File.ReadAllText("Templates/SwaggerJsonRazor.cshtml");
-            var res = "";
-            // 读取文件流
-            var names = assembly.GetManifestResourceNames();
-            for (int i = 0; i < names.Length; i++)
-            {
-                var name = assembly.GetName().Name + ".Templates.SwaggerJsonRazor.cshtml";
-                if (names[i] != name)
-                {
-                    continue;
-                }
-                using var stream = assembly.GetManifestResourceStream(name);
-                using var streamReader = new StreamReader(stream);
-                var content = streamReader.ReadToEnd();
-                res = content;
-                break;
-            }
-            return res;
+            Colorful.Console.WriteFormatted(@$"{version}
+", Color.White);
+        };
+
+        #endregion showInitConsole
+
+        #region GetArguments
+
+        string args0 = args[0].Trim().ToLower();
+        if (args[0] == "?" || args0 == "--help" || args0 == "-help" || args0 == "-h")
+        {
+            showInitConsole();
+            wait.Set();
+            return;
         }
 
-        private static bool IsUrl(string urlStr) => Regex.IsMatch(urlStr, @"^((https?)(:))?(\/\/)(\w*|\d*)");
+        if (args[0] == "--version" || args[0] == "-v")
+        {
+            showVersionConsole();
+            wait.Set();
+            return;
+        }
+        for (int a = 0; a < args.Length; a++)
+        {
+            switch (args[a].Trim().ToLower())
+            {
+                case "-r":
+                case "--razor":
+                    ArgsRazor = File.ReadAllText(args[a + 1]);
+                    a++;
+                    break;
+                case "-f":
+                case "--fileurl":
+                    ArgsSwaggerJsonFileUrl = args[a + 1];
+                    a++;
+                    break;
+                case "-k":
+                case "--readkey":
+                    ArgsReadKey = args[a + 1].Trim() == "1";
+                    a++;
+                    break;
+                case "-o":
+                case "--output":
+                    setArgsOutput(args[a + 1]);
+                    a++;
+                    break;
+                case "-d":
+                case "--downloadrazor":
+                    if (args[a + 1].Trim() == "1")
+                    {
+                        ArgsRazor = GetDefaultRazorContent(assembly);
+                        var swaggerJsonRazorCshtml = "SwaggerJsonRazor.cshtml";
+                        if (File.Exists(swaggerJsonRazorCshtml))
+                        {
+                            File.Delete(swaggerJsonRazorCshtml);
+                        }
+                        File.WriteAllText(swaggerJsonRazorCshtml, ArgsRazor);
+                        Console.WriteLine("文件已下载:" + swaggerJsonRazorCshtml);
+                    }
+                    a++;
+                    break;
+                case "-g":
+                case "--genrebuildfile":
+                    ArgsGenRebuildFile = args[a + 1].Trim() == "1";
+                    a++;
+                    break;
+                case "--hasendfn":
+                    HasEndFn = args[a + 1].Trim() == "1";
+                    a++;
+                    break;
+                case "--endfnstring":
+                    EndFnString = args[a + 1].Trim();
+                    a++;
+                    break;
+                case "--excludepattern":
+                    var patternString = args[a + 1];
+                    //ExcludePattern = new Regex(patternString);
+                    ExcludePattern = patternString;
+                    a++;
+                    break;
+                default:
+                    //showInitConsole();
+                    throw new ArgumentException($"错误的参数设置：{args[a]}");
+            }
+        }
+        if (string.IsNullOrWhiteSpace(ArgsSwaggerJsonFileUrl))
+        {
+            throw new ArgumentException($"错误的参数设置：--FileUrl 参数不能为空");
+        }
+        #endregion GetArguments
+        #region 读取内嵌的模板资源
+        //if (ArgsRazor == null)
+        //{
+        //    ArgsRazor = GetDefaultRazorContent(assembly);
+        //}
+        #endregion 读取内嵌的模板资源
+
+        #region 对Text.Json统一配置
+        JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+        {
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+        };
+
+        #endregion
+        //开始生成操作
+        {
+            string jsondata = string.Empty;
+            #region 读取json文件内容
+            if (IsUrl(ArgsSwaggerJsonFileUrl))
+            {
+                var client = new HttpClient();
+                var res = client.GetAsync(ArgsSwaggerJsonFileUrl).Result;
+                if (!res.IsSuccessStatusCode)
+                {
+                    Colorful.Console.WriteFormatted("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result, jsonOptions), Color.Red);
+                    throw new ArgumentException(res.StatusCode.ToString());
+                }
+                jsondata = res.Content.ReadAsStringAsync().Result;
+            }
+            else if (File.Exists(ArgsSwaggerJsonFileUrl))
+            {
+                jsondata = File.ReadAllText(ArgsSwaggerJsonFileUrl);
+            }
+            else
+            {
+                throw new ArgumentException($"错误的参数设置：请检查 --FileUrl 参数的正确性");
+            }
+
+            Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取文件内容完毕\r\n", Color.DarkGreen);
+            #endregion
+            #region 处理json
+            //$ref=>@ref
+            jsondata = jsondata.Replace("$ref", "_ref");
+            JsonProcess.ParseSwaggerJson(jsondata);
+            #endregion
+
+            //$ref=>_ref , application/json=>application_json , multipart/form-data=>multipart_form_data
+            /*     var cleanData = jsondata.Replace("$ref", "ref").Replace("application/json", "application_json").Replace("multipart/form-data", "multipart_form_data").Replace("\"in\"", "\"_in\"").Replace("\"default\"", "\"_default\"");
+
+                 SwaggerModel rawData = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
+                 SwaggerModel data = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
+                 var paths = data.paths.Keys;
+                 var keyList = paths.Select(p => p.Split("/")).ToList();
+                 var k0 = keyList[0];
+                 var minLength = keyList.Min(p => p.Length);
+                 var sameRoute = new List<string>();
+                 for (int i = 0; i < minLength; i++)
+                 {
+                     if (keyList.All(l => l[i] == k0[i]))
+                     {
+                         sameRoute.Add(k0[i]);
+                     }
+                     else
+                     {
+                         break;
+                     }
+                 }
+                 var groupDic = new Dictionary<string, List<string>>();
+                 keyList.ForEach(k =>
+                 {
+                     var diffName = k[sameRoute.Count];
+                     if (groupDic.ContainsKey(diffName))
+                     {
+                         var v = groupDic[diffName];
+
+                         groupDic[diffName].Add(string.Join("/", k));
+                     }
+                     else
+                     {
+                         groupDic.Add(diffName, new List<string>() { string.Join("/", k) });
+                     }
+                 });
+                 int outputCounter = 0;
+                 var razorId = Guid.NewGuid().ToString("N");
+                 foreach (var key in groupDic.Keys)
+                 {
+                     data.paths = new Dictionary<string, PathModel>();
+                     foreach (var path in groupDic[key])
+                     {
+                         //排除路径
+                         if (ExcludePattern == null)
+                         {
+                             data.paths.Add(path, rawData.paths[path]);
+                         }
+                         else
+                         {
+                             var match = Regex.Match(path, ExcludePattern, RegexOptions.IgnoreCase);
+                             if (!match.Success)
+                             {
+                                 data.paths.Add(path, rawData.paths[path]);
+                             }
+                         }
+                     }
+                     var fileName = $"api.{key.First().ToString().ToLower() + key[1..]}.js";
+                     if (data.paths.Count > 0)
+                     {
+                         DynamicViewBag dynamicViewBag = new DynamicViewBag();
+                         dynamicViewBag.AddValue("HasEndFn", HasEndFn);
+                         dynamicViewBag.AddValue("EndFnString", EndFnString);
+                         string razorResult = RazorEngine.Engine.Razor.RunCompile(ArgsRazor, razorId, null, data, dynamicViewBag);
+                         razorResult = razorResult.Replace("&quot;", "\"").Replace("&amp;", "&");
+                         var fileFullPath = $"{ArgsOutput}{fileName}";
+                         if (File.Exists(fileFullPath))
+                         {
+                             File.Delete(fileFullPath);
+                         }
+                         File.WriteAllText(fileFullPath, razorResult);
+                         outputCounter++;
+                         Colorful.Console.WriteFormatted($"\r\n[{outputCounter}]:{fileName}", Color.BurlyWood);
+                     }
+                     else
+                     {
+                         Colorful.Console.WriteFormatted($"\r\n跳过:{fileName}", Color.BurlyWood);
+                     }
+                 }
+                 #region rebuild.bat
+                 if (ArgsGenRebuildFile)
+                 {
+                     var rebuildBatName = "_重新生成.bat";
+                     var rebuildBat = ArgsOutput + rebuildBatName;
+                     if (File.Exists(rebuildBat) == false)
+                     {
+                         var razorCshtmlName = "__razor.cshtml.txt";
+                         var razorCshtml = ArgsOutput + razorCshtmlName;
+                         if (File.Exists(razorCshtml) == false)
+                         {
+                             File.WriteAllText(razorCshtml, ArgsRazor);
+                             Colorful.Console.WriteFormatted("\r\nOUT -> " + razorCshtml + "    (以后) 编辑它自定义模板生成\r\n", Color.Magenta);
+                             outputCounter++;
+                         }
+
+                         File.WriteAllText(rebuildBat, $@"swagger2js --Razor ""{razorCshtmlName}"" --FileUrl ""{ArgsSwaggerJsonFileUrl}""");
+                         Colorful.Console.WriteFormatted("OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
+                         outputCounter++;
+                     }
+                 }
+                 #endregion
+
+                 Colorful.Console.WriteFormatted($"\r\n\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
+     */
+
+            if (ArgsReadKey)
+            {
+                Console.WriteLine("\r\n按任意键退出");
+                //Console.ReadKey();
+            }
+            wait.Set();
+        }
     }
+
+    private static string GetDefaultRazorContent(Assembly assembly)
+    {
+        //此方式在发布之后工具位置会找不到资源
+        //ArgsRazor = File.ReadAllText("Templates/SwaggerJsonRazor.cshtml");
+        var res = "";
+        // 读取文件流
+        var names = assembly.GetManifestResourceNames();
+        for (int i = 0; i < names.Length; i++)
+        {
+            var name = assembly.GetName().Name + ".Templates.SwaggerJsonRazor.cshtml";
+            if (names[i] != name)
+            {
+                continue;
+            }
+            using var stream = assembly.GetManifestResourceStream(name);
+            using var streamReader = new StreamReader(stream);
+            var content = streamReader.ReadToEnd();
+            res = content;
+            break;
+        }
+        return res;
+    }
+
+    private static bool IsUrl(string urlStr) => Regex.IsMatch(urlStr, @"^((https?)(:))?(\/\/)(\w*|\d*)");
 }
