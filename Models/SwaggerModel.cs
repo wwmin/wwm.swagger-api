@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace swagger2js_cli.Models;
+﻿namespace swagger2js_cli.Models;
 
 public class SwaggerModel
 {
@@ -68,7 +66,7 @@ public class ResponseBody
 
 public class ResponseContentModel
 {
-    
+
     //public Dictionary<string, JsonSchema> application_json { get; set; }
     //public Dictionary<string, JsonSchema> text_plain { get; set; }
     //public Dictionary<string, JsonSchema> text_json { get; set; }
@@ -129,7 +127,7 @@ public class FormDataSchemaEncoding
 public class ResponseModel
 {
     public string description { get; set; }
-    public Dictionary<string,JsonSchema> content { get; set; }
+    public Dictionary<string, JsonSchema> content { get; set; }
 }
 
 
@@ -157,6 +155,7 @@ public class SchemasModel
     public Dictionary<string, PropertyModel> properties { get; set; }
     public bool additionalProperties { get; set; }
     public string description { get; set; }
+    public object[] @enum { get; set; }
 }
 
 public class PropertyModel

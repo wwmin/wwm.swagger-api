@@ -87,7 +87,7 @@ public static class CSharpTypeToTypeScriptType
             return null;
         }
         //取ref string的最后一个
-        string[] refs = refString.Split('/');
+        string[] refs = refString.Split('/', StringSplitOptions.RemoveEmptyEntries);
         return refs[refs.Length - 1];
     }
 

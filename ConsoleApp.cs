@@ -1,18 +1,9 @@
-﻿using RazorEngine.Templating;
+﻿using swagger2js_cli.Processes;
 
-using swagger2js_cli.Models;
-using swagger2js_cli.Processes;
-
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace swagger2js_cli;
 
@@ -35,7 +26,7 @@ public class ConsoleApp
     public ConsoleApp(string[] args, ManualResetEvent wait)
     {
         var assembly = typeof(ConsoleApp).Assembly;
-        var version = "v" + string.Join(".", assembly.GetName().Version.ToString().Split(".").Where((a, b) => b <= 2));
+        var version = "v" + string.Join(".", assembly.GetName().Version.ToString().Split(".", StringSplitOptions.RemoveEmptyEntries).Where((a, b) => b <= 2));
         Colorful.Console.WriteAscii("swagger2js", Color.Violet);
         Colorful.Console.WriteFormatted(@"
 # Github # {0} {1}
@@ -229,7 +220,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                  SwaggerModel rawData = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
                  SwaggerModel data = JsonSerializer.Deserialize<SwaggerModel>(cleanData, jsonOptions);
                  var paths = data.paths.Keys;
-                 var keyList = paths.Select(p => p.Split("/")).ToList();
+                 var keyList = paths.Select(p => p.Split("/", StringSplitOptions.RemoveEmptyEntries)).ToList();
                  var k0 = keyList[0];
                  var minLength = keyList.Min(p => p.Length);
                  var sameRoute = new List<string>();

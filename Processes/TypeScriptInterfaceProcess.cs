@@ -14,13 +14,15 @@ public static class TypeScriptInterfaceProcess
         var swagger = JsonSerializer.Deserialize<SwaggerModel>(swaagerJson);
 
         {
-            //string filePath = "D:/api/interface/index.ts";
-            //var allTsModelsString = GenerateTypeScriptTypesFromJsonModel(swagger?.components);
-            //SaveToFile(filePath, allTsModelsString);
+            string filePath = "D:/api/interface/index.ts";
+            var allTsModelsString = GenerateTypeScriptTypesFromJsonModel(swagger?.components);
+            SaveToFile(filePath, allTsModelsString);
         }
 
-        TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger);
+        //TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger);
     }
+
+
 
 
     #region GenerateTypeString
@@ -35,8 +37,16 @@ public static class TypeScriptInterfaceProcess
         foreach (var key in jsonComponents.schemas.Keys)
         {
             var value = jsonComponents.schemas[key];
-            var typeScriptType = GenerateSchemasTypeScriptInterface(key, value);
-            sb.Append(typeScriptType);
+            if (value.@enum != null)
+            {
+                var typeScriptEnum = GenerateScheasTypeScriptEnum(key, value);
+                sb.Append(typeScriptEnum);
+            }
+            else
+            {
+                var typeScriptType = GenerateSchemasTypeScriptInterface(key, value);
+                sb.Append(typeScriptType);
+            }
             //Console.WriteLine(typeScriptType);
         }
 
@@ -45,7 +55,7 @@ public static class TypeScriptInterfaceProcess
     }
 
     /// <summary>
-    /// 生成实体类
+    /// 生成接口
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
@@ -123,6 +133,58 @@ public static class TypeScriptInterfaceProcess
         typeScriptInterface += $"}}\n\n";
         return typeScriptInterface;
     }
+
+    /// <summary>
+    /// 生成枚举  enum类型及注释依靠description生成
+    /// </summary>
+    /// <param name="tsTypeName"></param>
+    /// <param name="model"></param>
+    /// <returns></returns>
+    private static string GenerateScheasTypeScriptEnum(string tsTypeName, SchemasModel model)
+    {
+        if (model == null || string.IsNullOrEmpty(model.description)) return "";
+        string prefix_space_num = "  ";//默认两个空格
+        var typeScriptEnum = "";
+
+        var enumDescriptionList = model.description.Split(new string[] { "<br />&nbsp;", "<br />" }, StringSplitOptions.RemoveEmptyEntries);
+        int descLength = enumDescriptionList.Length - model.@enum.Length;
+        if (descLength > 0)
+        {
+            //有注释
+            var desc = string.Join(" ", enumDescriptionList[..descLength]);
+            typeScriptEnum += $"/** {desc} */\n";
+        }
+        typeScriptEnum += $"export enum {tsTypeName} {{\n";
+        for (int i = descLength; i < enumDescriptionList.Length; i++)
+        {
+            var item = enumDescriptionList[i];
+            // item 形如: "用户 = 1"
+            // item 形如: "user 普通用户 = 2"
+            // 规则: 取最后一个 = 两侧的值, 防止用户注释干扰
+            var index = item.LastIndexOf("=");
+            if (index == -1 || index == 0) continue;
+            var keyIndex = item.Substring(0, index).Trim().LastIndexOf(" ");
+            if (keyIndex == -1)
+            {
+                keyIndex = 0;
+            };
+            var key = item.Substring(keyIndex, index - keyIndex).Trim();
+            var value = item.Substring(index + 1).Trim();
+            var description = item.Substring(0, keyIndex).Trim();
+
+            //var enumItem = item.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+            if (!string.IsNullOrEmpty(description))
+            {
+                typeScriptEnum += $"{prefix_space_num}/** {description} */\n";
+            }
+            typeScriptEnum += $"{prefix_space_num}{key} = {value},\n";
+        }
+
+
+        typeScriptEnum += $"}}\n\n";
+        return typeScriptEnum;
+    }
+
     #endregion
 
     private static void SaveToFile(string filePath, string str)

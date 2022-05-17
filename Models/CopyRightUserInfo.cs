@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace swagger2js_cli.Models;
+﻿namespace swagger2js_cli.Models;
 
 /// <summary>
 /// 授权信息

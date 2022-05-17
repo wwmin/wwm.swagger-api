@@ -117,7 +117,7 @@ public static class TypeScriptApiProcess
 
     private static string ParsePathToCamelName(string path, string removePreApi, string removeTag)
     {
-        var pathList = path.Split("/").ToList();
+        var pathList = path.Split("/", StringSplitOptions.RemoveEmptyEntries).ToList();
         pathList = pathList.Where(p => p.Length > 0 && p != "-").ToList();
         if (pathList.Count < 1) return "";
         if (pathList[0] == removePreApi) pathList.RemoveAt(0);
@@ -130,7 +130,7 @@ public static class TypeScriptApiProcess
     private static string ParseStringReplaceStrigulaToUp(string s)
     {
         if (string.IsNullOrEmpty(s)) return s;
-        var sl = s.Split("-").Where(p => p.Length > 0).ToList();
+        var sl = s.Split("-", StringSplitOptions.RemoveEmptyEntries).Where(p => p.Length > 0).ToList();
 
         if (sl.Count == 1)
         {
