@@ -309,6 +309,18 @@ public static class TypeScriptApiProcess
                                 if (subType != null)
                                 {
                                     var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(subType);
+                                    if (refValue.isValue == false && refValue.content.StartsWith("ActionResult_"))
+                                    {
+                                        if (schemas[refValue.content].properties.TryGetValue("value", out var subData))
+                                        {
+                                            //系统过度包装了ActionResult类型
+                                            var subSubType = CSharpTypeToTypeScriptType.ParseRefType(subData._ref);
+                                            if (subSubType != null)
+                                            {
+                                                refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(subSubType);
+                                            }
+                                        }
+                                    }
                                     return (refValue.content, refValue.isValue);
                                 }
                                 return (subType ?? "any", false);
