@@ -33,6 +33,21 @@ public class PathModel
 
     public HttpRequestModel put { get; set; }
     public HttpRequestModel delete { get; set; }
+
+    public HttpRequestModel? this[string index]
+    {
+        get
+        {
+            return index switch
+            {
+                "post" => post,
+                "get" => get,
+                "put" => put,
+                "delete" => delete,
+                _ => null
+            };
+        }
+    }
 }
 
 public class HttpRequestModel

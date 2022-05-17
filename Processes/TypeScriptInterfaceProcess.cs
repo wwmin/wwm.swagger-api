@@ -13,11 +13,11 @@ public static class TypeScriptInterfaceProcess
     {
         var swagger = JsonSerializer.Deserialize<SwaggerModel>(swaagerJson);
 
-        {
-            string filePath = "D:/api/interface/index.ts";
-            var allTsModelsString = GenerateTypeScriptTypesFromJsonModel(swagger?.components);
-            SaveToFile(filePath, allTsModelsString);
-        }
+        //{
+        //    string filePath = "D:/api/interface/index.ts";
+        //    var allTsModelsString = GenerateTypeScriptTypesFromJsonModel(swagger?.components);
+        //    SaveToFile(filePath, allTsModelsString);
+        //}
 
         TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger);
     }

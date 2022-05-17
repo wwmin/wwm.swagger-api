@@ -38,110 +38,54 @@ public static class TypeScriptApiProcess
             Console.WriteLine(tag + " : " + requestUrlPathName);
             //一个路径有多个请求, 则使用对象形式 account.code:{ get: ()=>{},post:()=>{} }
             HttpRequestModel reqModel = null;
-            string method = "";
-            int isMany = 0;
+            List<string> methods = new List<string>();
+
             if (value.get != null)
             {
                 reqModel = value.get;
-                method = "get";
-                isMany++;
+                methods.Add(nameof(value.get));
             }
             if (value.post != null)
             {
                 reqModel = value.post;
-                method = "post";
-                isMany++;
+                methods.Add(nameof(value.post));
             }
             if (value.put != null)
             {
                 reqModel = value.put;
-                method = "put";
-                isMany++;
+                methods.Add(nameof(value.put));
             }
             if (value.delete != null)
             {
                 reqModel = value.delete;
-                method = "delete";
-                isMany++;
+                methods.Add(nameof(value.delete));
             }
-            if (isMany == 0)
+            if (methods.Count == 0)
             {
                 continue;
             }
-
-            if (isMany == 1 && reqModel != null)
+            if (!hasTagFile) SaveFile(fileName, filePreText, false);
+            if (methods.Count == 1 && reqModel != null)
+            {
+                var apiValue = ConvertReqModelToApi(swaggerModel, reqModel, key, requestUrlPathName, methods.FirstOrDefault()!, interfacePre, prefix_space_num);
+                if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                SaveFile(fileName, apiValue.content, true);
+            }
+            else
             {
                 StringBuilder sb = new StringBuilder();
                 //使用单个对象形式输出
-                if (!hasTagFile)
-                    SaveFile(fileName, filePreText, false);
-
                 if (!string.IsNullOrEmpty(reqModel.summary)) sb.AppendLine($"/** {reqModel.summary} */");
-                // 处理入参, get/delete 默认只有queryParams , post/put默认首先有requestBody和parameters
-                // 处理parameters参数
-                var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, reqModel.requestBody, prefix_space_num, reqModel.summary);
-                if (!string.IsNullOrEmpty(parameters.content))
+                //有多个请求类型
+                foreach (var method in methods)
                 {
-                    SaveFile(fileName, parameters.content, true);
+                    reqModel = value[method]!;
+                    if (reqModel == null) continue;
+                    var apiValue = ConvertReqModelToApi(swaggerModel, reqModel, key, requestUrlPathName, method, interfacePre, prefix_space_num, "_" + method.ToUpperFirst());
+                    if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                    SaveFile(fileName, apiValue.content, true);
                 }
-                string paramType = string.IsNullOrEmpty(parameters.paramInterfaceName) ? "any" : parameters.paramInterfaceName;
-                // 处理requestBody
-                var requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
-                var hasRequestBody = false;
-                if (!string.IsNullOrEmpty(requestBody))
-                {
-                    hasRequestBody = true;
-                    //有限将bodyParams放到请求参数前面
-                    var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(requestBody);
-                    if (refValue.isValue)
-                    {
-                        requestBody = refValue.content;
-                    }
-                    else
-                    {
-                        requestBody = interfacePre + "." + refValue.content;
-                    }
-
-                    sb.AppendLine($"export const {requestUrlPathName} = (params: {requestBody} , requestParams: {paramType}) => {{");
-                }
-                else
-                {
-                    sb.AppendLine($"export const {requestUrlPathName} = (params: {paramType}) => {{");
-                }
-                if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
-                {
-                    var pathKeys = string.Join(" , ", parameters.inPathKeys);
-                    if (hasRequestBody)
-                    {
-                        sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = requestParams;");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = params;");
-                    }
-                }
-                // 处理出参
-                var responseType = ParseResponseType(swaggerModel, reqModel.responses, true);
-                if (!responseType.content.StartsWith("any"))
-                {
-                    if (!responseType.isValueType)
-                    {
-                        responseType.content = interfacePre + "." + responseType.content;
-                    }
-                }
-                var realUrlPath = UrlPathToES6ParamsPath(key);
-                sb.AppendLine($"{prefix_space_num}return http.{method}<{responseType.content}>(`{realUrlPath}`, params{(hasRequestBody ? " , requestParams" : "")});");
-                sb.AppendLine($"}}\n\n");
-
-                SaveFile(fileName, sb.ToString(), true);
             }
-
-            if (isMany > 1)
-            {
-
-            }
-
-
         }
     }
 
@@ -164,10 +108,12 @@ public static class TypeScriptApiProcess
 
         if (sl.Count == 1)
         {
-            return sl[0][..1].ToUpper() + sl[0][1..];
+            return sl[0].ToUpperFirst();
         }
-        return sl.Aggregate((x, y) => x[..1].ToUpper() + x[1..] + y[..1].ToUpper() + y[1..]);
+        return sl.Aggregate((x, y) => x.ToUpperFirst() + y.ToUpperFirst());
     }
+
+
     #region 入参
     /// <summary>
     /// 请求输入参数 提取
@@ -200,7 +146,86 @@ public static class TypeScriptApiProcess
         return (sb.ToString(), name, inPathList);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="swaggerModel"></param>
+    /// <param name="reqModel"></param>
+    /// <param name="path"></param>
+    /// <param name="requestUrlPathName"></param>
+    /// <param name="methodName"></param>
+    /// <param name="interfacePre"></param>
+    /// <param name="prefix_space_num"></param>
+    /// <param name="methodPost">可为空,当不为空时,将在导出函数后缀添加 该变量值</param>
+    /// <returns></returns>
+    private static (string content, string interfaceText) ConvertReqModelToApi(SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
+    {
+        StringBuilder sb = new StringBuilder();
+        //使用单个对象形式输出
+        if (!string.IsNullOrEmpty(reqModel.summary)) sb.AppendLine($"/** {reqModel.summary} */");
+        // 处理入参, get/delete 默认只有queryParams , post/put默认首先有requestBody和parameters
+        // 处理parameters参数
+        var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, reqModel.requestBody, prefix_space_num, reqModel.summary);
 
+        //if (!string.IsNullOrEmpty(parameters.content))
+        //{
+        //    SaveFile(fileName, parameters.content, true);
+        //}
+        string paramType = parameters.paramInterfaceName;
+        // 处理requestBody
+        var requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
+        var hasRequestBody = false;
+        if (!string.IsNullOrEmpty(requestBody))
+        {
+            hasRequestBody = true;
+            //有限将bodyParams放到请求参数前面
+            var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(requestBody);
+            if (refValue.isValue)
+            {
+                requestBody = refValue.content;
+            }
+            else
+            {
+                requestBody = interfacePre + "." + refValue.content;
+            }
+
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {requestBody} , requestParams: {paramType}) => {{");
+        }
+        else if (!string.IsNullOrEmpty(paramType))
+        {
+
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}) => {{");
+        }
+        else
+        {
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = () => {{");
+        }
+        if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
+        {
+            var pathKeys = string.Join(" , ", parameters.inPathKeys);
+            if (hasRequestBody)
+            {
+                sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = requestParams;");
+            }
+            else
+            {
+                sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = params;");
+            }
+        }
+        // 处理出参
+        var responseType = ParseResponseType(swaggerModel, reqModel.responses, true);
+        if (!responseType.content.StartsWith("any"))
+        {
+            if (!responseType.isValueType)
+            {
+                responseType.content = interfacePre + "." + responseType.content;
+            }
+        }
+        var realUrlPath = UrlPathToES6ParamsPath(path);
+        sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`{(string.IsNullOrEmpty(paramType) ? "" : ", params")}{(hasRequestBody ? " , requestParams" : "")});");
+        sb.AppendLine($"}}\n\n");
+        return (sb.ToString(), parameters.content);
+    }
     #endregion
     #region 出参
     /// <summary>
