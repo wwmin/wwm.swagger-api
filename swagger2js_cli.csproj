@@ -29,8 +29,4 @@
 	  <None Remove="Templates\**" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Colorful.Console" Version="1.2.15" />
-	</ItemGroup>
-
 </Project>

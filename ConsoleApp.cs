@@ -1,4 +1,5 @@
-﻿using swagger2js_cli.Processes;
+﻿using swagger2js_cli.Models;
+using swagger2js_cli.Processes;
 
 using System.Drawing;
 using System.Reflection;
@@ -14,27 +15,28 @@ public class ConsoleApp
 {
     private string ArgsSwaggerJsonFileUrl { get; }
     private string ArgsRazor { get; }
-    internal string ArgsOutput { get; private set; }
+    internal string ArgsOutput { get; private set; } = string.Empty;
     private bool ArgsReadKey { get; }
-    private bool ArgsGenRebuildFile { get; }
-
-    private bool HasEndFn { get; }
-    private string EndFnString { get; }
-
     private string ExcludePattern { get; }
 
     public ConsoleApp(string[] args, ManualResetEvent wait)
     {
         var assembly = typeof(ConsoleApp).Assembly;
-        var version = "v" + string.Join(".", assembly.GetName().Version.ToString().Split(".", StringSplitOptions.RemoveEmptyEntries).Where((a, b) => b <= 2));
-        Colorful.Console.WriteAscii("swagger2js", Color.Violet);
-        Colorful.Console.WriteFormatted(@"
-# Github # {0} {1}
-", Color.SlateGray,
-new Colorful.Formatter("https://github.com/wwmin/swagger2js_cli", Color.DeepSkyBlue),
-new Colorful.Formatter(version, Color.SlateGray));
-
-
+        var version = "v" + string.Join(".", assembly.GetName()?.Version?.ToString()?.Split(".", StringSplitOptions.RemoveEmptyEntries)?.Where((a, b) => b <= 2) ?? Array.Empty<string>());
+        var logo = $@"
+                                        ___  _     
+                                       |__ \(_)    
+  _____      ____ _  __ _  __ _  ___ _ __ ) |_ ___ 
+ / __\ \ /\ / / _` |/ _` |/ _` |/ _ \ '__/ /| / __|
+ \__ \\ V  V / (_| | (_| | (_| |  __/ | / /_| \__ \
+ |___/ \_/\_/ \__,_|\__, |\__, |\___|_||____| |___/
+                     __/ | __/ |           _/ |    
+                    |___/ |___/           |__/     
+";
+        ConsoleUtil.WriteLine(logo, ConsoleColor.White);
+        ConsoleUtil.Write(@"# Github # ", ConsoleColor.White);
+        ConsoleUtil.Write("https://github.com/wwmin/swagger2js_cli", ConsoleColor.Green);
+        ConsoleUtil.WriteLine($" {version}", ConsoleColor.DarkGreen);
 
         //ArgsSwaggerJsonFileUrl = "swagger.json";
         ArgsReadKey = true;
@@ -56,35 +58,27 @@ new Colorful.Formatter(version, Color.SlateGray));
 
         Action showInitConsole = () =>
         {
-            Colorful.Console.WriteFormatted(@"
-     {0}
+            ConsoleUtil.WriteLine(@"
+     swagger2js 将swagger.json文件生成api.{name}.js
      更新工具：dotnet tool update -g swagger2js_cli
  # 快速开始 #
- > {1}
+ > swagger2js
     --FileUrl 或 -f   [必填]swagger.json URL(或本地文件路径) 如:--FileUrl http://localhost:5000/swagger/v1/swagger.json
-    --Razor 或 -r          自定义模板 如:--Razor ""d:\diy.cshtml""
     --Output 或 -o         保存路径，默认为当前 shell 所在目录 如:--Output apiFiles
     --GenRebuildFile 或 -g 是否输出""重新生成bat""文件,默认为0 如:--GenRebuildFile 1
-    --DownLoadRazor -d  获取默认的razor模板到本地,默认为0 如: --DownLoadRazor 1
-    --HasEndFn      在每个函数尾部添加一个endFn,以方便接口自定义后续操作
-    --EndFnString   自定义接口后续操作的方法名,默认为'endFn',注意:只有在--HasEndFn 1时生效
     --ExcludePattern 排除的路径名字符串或正则表达式(匹配后排除)
-", Color.SlateGray,
-new Colorful.Formatter("swagger2js 将swagger.json文件生成api.{name}.js", Color.SlateGray),
-new Colorful.Formatter("swagger2js", Color.White)
+", ConsoleColor.Gray
 );
         };
 
         Action showVersionConsole = () =>
         {
-            Colorful.Console.WriteFormatted(@$"{version}
-", Color.White);
+            ConsoleUtil.WriteLine($"{version}", ConsoleColor.White);
         };
 
         #endregion showInitConsole
 
         #region GetArguments
-
         string args0 = args[0].Trim().ToLower();
         if (args[0] == "?" || args0 == "--help" || args0 == "-help" || args0 == "-h")
         {
@@ -103,11 +97,6 @@ new Colorful.Formatter("swagger2js", Color.White)
         {
             switch (args[a].Trim().ToLower())
             {
-                case "-r":
-                case "--razor":
-                    ArgsRazor = File.ReadAllText(args[a + 1]);
-                    a++;
-                    break;
                 case "-f":
                 case "--fileurl":
                     ArgsSwaggerJsonFileUrl = args[a + 1];
@@ -123,37 +112,8 @@ new Colorful.Formatter("swagger2js", Color.White)
                     setArgsOutput(args[a + 1]);
                     a++;
                     break;
-                case "-d":
-                case "--downloadrazor":
-                    if (args[a + 1].Trim() == "1")
-                    {
-                        ArgsRazor = GetDefaultRazorContent(assembly);
-                        var swaggerJsonRazorCshtml = "SwaggerJsonRazor.cshtml";
-                        if (File.Exists(swaggerJsonRazorCshtml))
-                        {
-                            File.Delete(swaggerJsonRazorCshtml);
-                        }
-                        File.WriteAllText(swaggerJsonRazorCshtml, ArgsRazor);
-                        Console.WriteLine("文件已下载:" + swaggerJsonRazorCshtml);
-                    }
-                    a++;
-                    break;
-                case "-g":
-                case "--genrebuildfile":
-                    ArgsGenRebuildFile = args[a + 1].Trim() == "1";
-                    a++;
-                    break;
-                case "--hasendfn":
-                    HasEndFn = args[a + 1].Trim() == "1";
-                    a++;
-                    break;
-                case "--endfnstring":
-                    EndFnString = args[a + 1].Trim();
-                    a++;
-                    break;
                 case "--excludepattern":
                     var patternString = args[a + 1];
-                    //ExcludePattern = new Regex(patternString);
                     ExcludePattern = patternString;
                     a++;
                     break;
@@ -192,7 +152,7 @@ new Colorful.Formatter("swagger2js", Color.White)
                 var res = client.GetAsync(ArgsSwaggerJsonFileUrl).Result;
                 if (!res.IsSuccessStatusCode)
                 {
-                    Colorful.Console.WriteFormatted("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result, jsonOptions), Color.Red);
+                    Console.WriteLine("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result, jsonOptions), ConsoleColor.Red);
                     throw new ArgumentException(res.StatusCode.ToString());
                 }
                 jsondata = res.Content.ReadAsStringAsync().Result;
@@ -206,12 +166,30 @@ new Colorful.Formatter("swagger2js", Color.White)
                 throw new ArgumentException($"错误的参数设置：请检查 --FileUrl 参数的正确性");
             }
 
-            Colorful.Console.WriteFormatted($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取文件内容完毕\r\n", Color.DarkGreen);
+            ConsoleUtil.WriteLine($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取文件内容完毕\r\n", ConsoleColor.DarkGreen);
             #endregion
             #region 处理json
             //$ref=>@ref
             jsondata = jsondata.Replace("$ref", "_ref");
-            TypeScriptInterfaceProcess.ParseSwaggerJson(jsondata);
+            var swagger = JsonSerializer.Deserialize<SwaggerModel>(jsondata, jsonOptions);
+            // 生成Interface文件
+            {
+                string filePath = ArgsOutput + "interface/index.ts";
+                TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath);
+                ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
+                Console.WriteLine();
+            }
+            //生成api.{name}.ts文件
+            {
+                string baseFile = ArgsOutput + "api/";
+                string interfacePre = "IApi";
+                string filePreText = $"import * as {interfacePre} from \"../interface\";\n" +
+                    "import http from \"../index\"\n\n";
+                TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre);
+                ConsoleUtil.WriteLine("接口文件夹: " + baseFile, ConsoleColor.DarkRed);
+
+            }
+
             #endregion
 
             //$ref=>_ref , application/json=>application_json , multipart/form-data=>multipart_form_data
@@ -321,7 +299,7 @@ new Colorful.Formatter("swagger2js", Color.White)
 
             if (ArgsReadKey)
             {
-                //Console.WriteLine("\r\n按任意键退出");
+                Console.WriteLine("\r\n按任意键退出");
                 //Console.ReadKey();
             }
             wait.Set();

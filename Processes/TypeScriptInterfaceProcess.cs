@@ -9,29 +9,14 @@ namespace swagger2js_cli.Processes;
 /// </summary>
 public static class TypeScriptInterfaceProcess
 {
-    public static void ParseSwaggerJson(string swaagerJson)
-    {
-        var swagger = JsonSerializer.Deserialize<SwaggerModel>(swaagerJson);
-
-        //{
-        //    string filePath = "D:/api/interface/index.ts";
-        //    var allTsModelsString = GenerateTypeScriptTypesFromJsonModel(swagger?.components);
-        //    SaveToFile(filePath, allTsModelsString);
-        //}
-
-        TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger);
-    }
-
-
-
 
     #region GenerateTypeString
-    public static string GenerateTypeScriptTypesFromJsonModel(Components? jsonComponents)
+    public static void GenerateTypeScriptTypesFromJsonModel(Components? jsonComponents, string filePath)
     {
         StringBuilder sb = new StringBuilder();
         if (jsonComponents == null)
         {
-            return "";
+            return;
         }
         //var schemas = GenerateSchemasTypeScriptType(jsonComponents.schemas);
         foreach (var key in jsonComponents.schemas.Keys)
@@ -47,11 +32,12 @@ public static class TypeScriptInterfaceProcess
                 var typeScriptType = GenerateSchemasTypeScriptInterface(key, value);
                 sb.Append(typeScriptType);
             }
-            //Console.WriteLine(typeScriptType);
+            ConsoleUtil.WriteLine("生成接口: " + key, ConsoleColor.DarkCyan);
         }
-
+        //TODO: 
         var securitySchemes = jsonComponents.securitySchemes;
-        return sb.ToString();
+        //return sb.ToString();
+        SaveToFile(filePath, sb.ToString());
     }
 
     /// <summary>
@@ -183,7 +169,7 @@ public static class TypeScriptInterfaceProcess
             {
                 typeScriptEnum += $"{prefix_space_num}/** {description} */\n";
             }
-            typeScriptEnum += $"{prefix_space_num}{key} = {value},\n";
+            typeScriptEnum += $"{prefix_space_num}{key} = {value}{(i == enumDescriptionList.Length - 1 ? "" : ",")}\n";
         }
 
 
@@ -193,7 +179,7 @@ public static class TypeScriptInterfaceProcess
 
     #endregion
 
-    private static void SaveToFile(string filePath, string str)
+    public static void SaveToFile(string filePath, string str)
     {
         var dirPath = Path.GetDirectoryName(filePath)!;
         if (!Directory.Exists(dirPath))

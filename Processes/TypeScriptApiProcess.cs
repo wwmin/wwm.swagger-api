@@ -8,22 +8,24 @@ namespace swagger2js_cli.Processes;
 /// </summary>
 public static class TypeScriptApiProcess
 {
-    public static void GenerateTypeScriptApiFromJsonModel(SwaggerModel swaggerModel)
+    public static void GenerateTypeScriptApiFromJsonModel(SwaggerModel? swaggerModel, string basePath, string filePreText, string interfacePre)
     {
+        if (swaggerModel == null) return;
         Dictionary<string, PathModel>? PathDic = swaggerModel.paths;
         if (PathDic == null) return;
         string prefix_space_num = "  ";//默认两个空格
-        string basePath = "D:/api/api/";
+        //string basePath = "D:/api/api/";
         RemoveFileIfExist(basePath);
         string filePrefix = "api.";
         string filePost = ".ts";
-        string interfacePre = "IApi";
-        string filePreText = $"import * as {interfacePre} from \"../interface\";\n" +
-            "import http from \"../index\"\n\n";
+        //string interfacePre = "IApi";
+        //string filePreText = $"import * as {interfacePre} from \"../interface\";\n" +
+        //    "import http from \"../index\"\n\n";
         var keys = PathDic.Keys;
         Dictionary<string, bool> pathStatistic = new Dictionary<string, bool>();
         foreach (var key in keys)
         {
+
             var value = PathDic[key];
 
             var tag = (value.get ?? value.post ?? value.put ?? value.delete).tags?.FirstOrDefault() ?? "common";
@@ -35,7 +37,7 @@ public static class TypeScriptApiProcess
             }
             var parseeKey = ParseRoutePathToString(key);
             var requestUrlPathName = ParsePathToCamelName(parseeKey, "api", tag);
-            Console.WriteLine(tag + " : " + requestUrlPathName);
+            //Console.WriteLine(tag + " : " + requestUrlPathName);
             //一个路径有多个请求, 则使用对象形式 account.code:{ get: ()=>{},post:()=>{} }
             HttpRequestModel reqModel = null;
             List<string> methods = new List<string>();
@@ -64,7 +66,20 @@ public static class TypeScriptApiProcess
             {
                 continue;
             }
-            if (!hasTagFile) SaveFile(fileName, filePreText, false);
+            if (!hasTagFile)
+            {
+
+                //将tag注释添加到api的文件头上面
+                var tagger = swaggerModel.tags.FirstOrDefault(p => p.name == tag);
+                var fileTagDesc = "";
+                if (tagger != null && !string.IsNullOrEmpty(tagger.description))
+                {
+                    fileTagDesc = $"/**\n";
+                    fileTagDesc += $" * {tagger.description}\n";
+                    fileTagDesc += $" */\n\n";
+                }
+                SaveFile(fileName, fileTagDesc + filePreText, false);
+            }
             if (methods.Count == 1 && reqModel != null)
             {
                 var apiValue = ConvertReqModelToApi(swaggerModel, reqModel, key, requestUrlPathName, methods.FirstOrDefault()!, interfacePre, prefix_space_num);
@@ -86,6 +101,7 @@ public static class TypeScriptApiProcess
                     SaveFile(fileName, apiValue.content, true);
                 }
             }
+            ConsoleUtil.WriteLine("生成Api: " + key, ConsoleColor.DarkGreen);
         }
     }
 
@@ -120,7 +136,7 @@ public static class TypeScriptApiProcess
     /// </summary>
     /// <param name="ps"></param>
     /// <returns></returns>
-    private static (string content, string paramInterfaceName, List<string>? inPathKeys) ParseParameters(string requestName, Parameter[] ps, Requestbody requestBody, string prefix_space_num = "  ", string summary = "")
+    private static (string content, string paramInterfaceName, List<string>? inPathKeys) ParseParameters(string requestName, Parameter[] ps, string prefix_space_num = "  ", string summary = "")
     {
         if (ps == null) return ("", "", null);
         StringBuilder sb = new StringBuilder();
@@ -140,8 +156,9 @@ public static class TypeScriptApiProcess
             {
                 sb.AppendLine($"{prefix_space_num}/** {p.description} */");
             }
-            sb.AppendLine($"{prefix_space_num}{p.name}: {CSharpTypeToTypeScriptType.Convert(null, p.schema.type)}{(p.required ? "" : " | null")},");
+            sb.AppendLine($"{prefix_space_num}{p.name}: {CSharpTypeToTypeScriptType.Convert(null, p.schema.type)}{(p.required ? "" : " | null")}{(i == ps.Length - 1 ? "" : ",")}");
         }
+
         sb.AppendLine($"}}\n");
         return (sb.ToString(), name, inPathList);
     }
@@ -165,7 +182,7 @@ public static class TypeScriptApiProcess
         if (!string.IsNullOrEmpty(reqModel.summary)) sb.AppendLine($"/** {reqModel.summary} */");
         // 处理入参, get/delete 默认只有queryParams , post/put默认首先有requestBody和parameters
         // 处理parameters参数
-        var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, reqModel.requestBody, prefix_space_num, reqModel.summary);
+        var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, prefix_space_num, reqModel.summary);
 
         //if (!string.IsNullOrEmpty(parameters.content))
         //{
