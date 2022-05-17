@@ -62,6 +62,12 @@ public static class TypeScriptInterfaceProcess
     private static string GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model)
     {
         if (model == null) return "";
+        //后缀是 _String _Int32 _Byte[] 等等的对象实体,内部是值类型,不需要定义接口
+        var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(tsTypeName);
+        if (refValue.isValue)
+        {
+            return "";
+        }
         string prefix_space_num = "  ";//默认两个空格
         var typeScriptInterface = string.IsNullOrEmpty(model.description) ? "" : $"/** {model.description} */\n";
         typeScriptInterface += $"export interface {tsTypeName} {{\n";
