@@ -77,18 +77,48 @@ public static class TypeScriptApiProcess
                     SaveFile(fileName, filePreText, false);
 
                 if (!string.IsNullOrEmpty(reqModel.summary)) sb.AppendLine($"/** {reqModel.summary} */");
-                // 处理入参
-                var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, prefix_space_num, reqModel.summary);
+                // 处理入参, get/delete 默认只有queryParams , post/put默认首先有requestBody和parameters
+                // 处理parameters参数
+                var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, reqModel.requestBody, prefix_space_num, reqModel.summary);
                 if (!string.IsNullOrEmpty(parameters.content))
                 {
                     SaveFile(fileName, parameters.content, true);
                 }
                 string paramType = string.IsNullOrEmpty(parameters.paramInterfaceName) ? "any" : parameters.paramInterfaceName;
-                sb.AppendLine($"export const {requestUrlPathName} = (params: {paramType}) => {{");
+                // 处理requestBody
+                var requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
+                var hasRequestBody = false;
+                if (!string.IsNullOrEmpty(requestBody))
+                {
+                    hasRequestBody = true;
+                    //有限将bodyParams放到请求参数前面
+                    var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(requestBody);
+                    if (refValue.isValue)
+                    {
+                        requestBody = refValue.content;
+                    }
+                    else
+                    {
+                        requestBody = interfacePre + "." + refValue.content;
+                    }
+
+                    sb.AppendLine($"export const {requestUrlPathName} = (params: {requestBody} , requestParams: {paramType}) => {{");
+                }
+                else
+                {
+                    sb.AppendLine($"export const {requestUrlPathName} = (params: {paramType}) => {{");
+                }
                 if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
                 {
                     var pathKeys = string.Join(" , ", parameters.inPathKeys);
-                    sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = params;");
+                    if (hasRequestBody)
+                    {
+                        sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = requestParams;");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = params;");
+                    }
                 }
                 // 处理出参
                 var responseType = ParseResponseType(swaggerModel, reqModel.responses, true);
@@ -100,7 +130,7 @@ public static class TypeScriptApiProcess
                     }
                 }
                 var realUrlPath = UrlPathToES6ParamsPath(key);
-                sb.AppendLine($"{prefix_space_num}return http.{method}<{responseType.content}>(`{realUrlPath}`, params);");
+                sb.AppendLine($"{prefix_space_num}return http.{method}<{responseType.content}>(`{realUrlPath}`, params{(hasRequestBody ? " , requestParams" : "")});");
                 sb.AppendLine($"}}\n\n");
 
                 SaveFile(fileName, sb.ToString(), true);
@@ -144,7 +174,7 @@ public static class TypeScriptApiProcess
     /// </summary>
     /// <param name="ps"></param>
     /// <returns></returns>
-    private static (string content, string paramInterfaceName, List<string>? inPathKeys) ParseParameters(string requestName, Parameter[] ps, string prefix_space_num = "  ", string summary = "")
+    private static (string content, string paramInterfaceName, List<string>? inPathKeys) ParseParameters(string requestName, Parameter[] ps, Requestbody requestBody, string prefix_space_num = "  ", string summary = "")
     {
         if (ps == null) return ("", "", null);
         StringBuilder sb = new StringBuilder();
@@ -169,6 +199,7 @@ public static class TypeScriptApiProcess
         sb.AppendLine($"}}\n");
         return (sb.ToString(), name, inPathList);
     }
+
 
     #endregion
     #region 出参

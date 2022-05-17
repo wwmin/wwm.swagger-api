@@ -19,7 +19,7 @@ public static class TypeScriptInterfaceProcess
             SaveToFile(filePath, allTsModelsString);
         }
 
-        //TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger);
+        TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger);
     }
 
 
