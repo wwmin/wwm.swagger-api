@@ -2,7 +2,7 @@
   "profiles": {
     "swagger2js_cli": {
       "commandName": "Project",
-      "commandLineArgs": "-f http://localhost:5000/swagger/Default/swagger.json -o D:/ApiTs"
+      "commandLineArgs": "-f http://localhost:5000/swagger/Default/swagger.json -o D:/api"
     }
   }
 }
