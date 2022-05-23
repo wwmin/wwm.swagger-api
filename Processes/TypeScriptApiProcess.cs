@@ -208,21 +208,21 @@ public static class TypeScriptApiProcess
             }
             if (hasParamType == false)
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {requestBody}) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {requestBody}, loading: boolean = true) => {{");
             }
             else
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {requestBody} , requestParams: {paramType}) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {requestBody} , requestParams: {paramType}, loading: boolean = true) => {{");
             }
         }
         else if (hasParamType)
         {
 
-            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}) => {{");
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}, loading: boolean = true) => {{");
         }
         else
         {
-            sb.AppendLine($"export const {requestUrlPathName + methodPost} = () => {{");
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (loading: boolean = true) => {{");
         }
         if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
         {
@@ -248,15 +248,15 @@ public static class TypeScriptApiProcess
         var realUrlPath = UrlPathToES6ParamsPath(path);
         if (hasRequestBody && hasParamType)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, requestParams);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, requestParams, loading);");
         }
         else if (hasRequestBody || hasParamType)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}, loading);");
         }
         else
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, {{}}, loading);");
         }
         //sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`{(string.IsNullOrEmpty(paramType) ? "" : ", params")}{(hasRequestBody ? " , requestParams" : "")});");
         sb.AppendLine($"}}\n\n");
