@@ -88,7 +88,7 @@ public class ConsoleApp
             // 生成Interface文件
             {
                 string filePath = _config.OutPath + "apiInterface/index.ts";
-                TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath);
+                TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath, _config);
                 ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
                 Console.WriteLine();
             }
@@ -98,7 +98,7 @@ public class ConsoleApp
                 string interfacePre = "IApi";
                 string filePreText = $"import * as {interfacePre} from \"../apiInterface\";\n" +
                     "import http from \"../index\"\n\n";
-                TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre);
+                TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre, _config);
                 ConsoleUtil.WriteLine("接口文件夹: " + baseFile, ConsoleColor.DarkRed);
 
             }

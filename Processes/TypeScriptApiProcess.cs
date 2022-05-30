@@ -8,7 +8,7 @@ namespace swagger2js_cli.Processes;
 /// </summary>
 public static class TypeScriptApiProcess
 {
-    public static void GenerateTypeScriptApiFromJsonModel(SwaggerModel? swaggerModel, string basePath, string filePreText, string interfacePre)
+    public static void GenerateTypeScriptApiFromJsonModel(SwaggerModel? swaggerModel, string basePath, string filePreText, string interfacePre, Config _config)
     {
         if (swaggerModel == null) return;
         Dictionary<string, PathModel>? PathDic = swaggerModel.paths;
@@ -72,9 +72,11 @@ public static class TypeScriptApiProcess
                 //将tag注释添加到api的文件头上面
                 var tagger = swaggerModel.tags.FirstOrDefault(p => p.name == tag);
                 var fileTagDesc = "";
+                if (!string.IsNullOrEmpty(_config.FileHeadText)) fileTagDesc += _config.FileHeadText + "\n";
+
                 if (tagger != null && !string.IsNullOrEmpty(tagger.description))
                 {
-                    fileTagDesc = $"/**\n";
+                    fileTagDesc += $"/**\n";
                     fileTagDesc += $" * {tagger.description}\n";
                     fileTagDesc += $" */\n\n";
                 }

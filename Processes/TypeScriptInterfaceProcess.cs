@@ -11,13 +11,14 @@ public static class TypeScriptInterfaceProcess
 {
 
     #region GenerateTypeString
-    public static void GenerateTypeScriptTypesFromJsonModel(Components? jsonComponents, string filePath)
+    public static void GenerateTypeScriptTypesFromJsonModel(Components? jsonComponents, string filePath,Config _config)
     {
         StringBuilder sb = new StringBuilder();
         if (jsonComponents == null)
         {
             return;
         }
+        sb.AppendLine(_config.FileHeadText);
         //var schemas = GenerateSchemasTypeScriptType(jsonComponents.schemas);
         foreach (var key in jsonComponents.schemas.Keys)
         {

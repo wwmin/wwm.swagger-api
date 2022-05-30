@@ -21,7 +21,23 @@ public class Config
         var config = new Config();
         if (File.Exists(configPath))
         {
-            var configText = File.ReadAllText(configPath, encoding: Encoding.UTF8);
+            StringBuilder sb = new StringBuilder();
+            var allLines = File.ReadAllLines(configPath, encoding: Encoding.UTF8);
+            //var configText = File.ReadAllText(configPath, encoding: Encoding.UTF8);
+            foreach (var line in allLines)
+            {
+                string lineText = line?.Trim() ?? "";
+                if (lineText.StartsWith("\"OutPath\""))
+                {
+                    lineText = lineText.Replace("\\", "/");
+                    sb.Append(lineText);
+                }
+                else
+                {
+                    sb.Append(line);
+                }
+            }
+            var configText = sb.ToString();
             config = JsonSerializer.Deserialize<Config>(configText, new JsonSerializerOptions()
             {
                 AllowTrailingCommas = true,
@@ -31,6 +47,7 @@ public class Config
                 ReadCommentHandling = JsonCommentHandling.Skip
             });
             if (config == null) throw new JsonException("格式化配置文件出现错误");
+            if (!config.OutPath.EndsWith("/")) config.OutPath += "/";
         }
         if (string.IsNullOrEmpty(config.OutPath))
         {
@@ -58,4 +75,8 @@ public class Config
     /// Json url
     /// </summary>
     public string JsonUrl { get; set; } = string.Empty;
+    /// <summary>
+    /// 文件头文字
+    /// </summary>
+    public string FileHeadText { get; set; } = string.Empty;
 }
