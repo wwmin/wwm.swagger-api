@@ -306,6 +306,10 @@ public static class TypeScriptApiProcess
                             if (dataRef == null) return ("any", false);
                             if (schemas[dataRef].properties.TryGetValue("data", out var data))
                             {
+                                if (data._ref == null && data.items == null)
+                                {
+                                    return (data.type, true);
+                                }
                                 // 因 值 类型被系统包装成了对象类型, 实际返回值还是值类型, swagger或框架的bug?
                                 var subType = CSharpTypeToTypeScriptType.ParseRefType(data._ref);
                                 if (subType != null)
@@ -325,7 +329,20 @@ public static class TypeScriptApiProcess
                                     }
                                     return (refValue.content, refValue.isValue);
                                 }
-                                return (subType ?? "any", false);
+                                else if (data.@type == "array")
+                                {
+                                    var arrayType = CSharpTypeToTypeScriptType.ParseRefType(data.items._ref);
+                                    if (arrayType == null)
+                                    {
+                                        if (data.items._ref != null)
+                                        {
+                                            return (data.items._ref + "[]", false);
+                                        }
+                                    }
+                                    return (arrayType != null ? arrayType + "[]" : "any", false);
+                                }
+
+                                return (data.type ?? "any", false);
                             };
                         }
                         else
