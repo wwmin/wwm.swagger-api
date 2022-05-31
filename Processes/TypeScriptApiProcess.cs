@@ -193,13 +193,12 @@ public static class TypeScriptApiProcess
         string paramType = parameters.paramInterfaceName;
         // 处理requestBody
         var requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
-        var hasRequestBody = false;
+        var hasRequestBody = !string.IsNullOrEmpty(requestBody);
         var hasParamType = !string.IsNullOrEmpty(paramType);
-        if (!string.IsNullOrEmpty(requestBody))
+
+        if (hasRequestBody)
         {
-            hasRequestBody = true;
-            //有限将bodyParams放到请求参数前面
-            var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(requestBody);
+            var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(requestBody!);
             if (refValue.isValue)
             {
                 requestBody = refValue.content;
@@ -208,13 +207,13 @@ public static class TypeScriptApiProcess
             {
                 requestBody = interfacePre + "." + refValue.content;
             }
-            if (hasParamType == false)
+            if (hasParamType)
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {requestBody}, loading: boolean = true) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}, loading: boolean = true) => {{");
             }
             else
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {requestBody} , requestParams: {paramType}, loading: boolean = true) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}, loading: boolean = true) => {{");
             }
         }
         else if (hasParamType)
@@ -250,11 +249,15 @@ public static class TypeScriptApiProcess
         var realUrlPath = UrlPathToES6ParamsPath(path);
         if (hasRequestBody && hasParamType)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, requestParams, loading);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, body, loading);");
         }
-        else if (hasRequestBody || hasParamType)
+        else if (hasParamType)
         {
             sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}, loading);");
+        }
+        else if (hasRequestBody)
+        {
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, body, loading);");
         }
         else
         {
