@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-namespace swagger2js_cli;
+namespace wwm.swaggerApi;
 
 /// <summary>
 /// 配置项
@@ -16,7 +16,10 @@ public class Config
     /// <exception cref="JsonException"></exception>
     public static Config Build(string configName = "appsettings.json")
     {
-        var currentDirectory = Directory.GetCurrentDirectory();
+        // 此为命令行执行路径,可能执行目录不在当前目录
+        //var currentDirectory = Directory.GetCurrentDirectory();
+        //此为运行时所在的路径
+        var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
         string configPath = Path.Combine(currentDirectory, configName);
         var config = new Config();
         if (File.Exists(configPath))
