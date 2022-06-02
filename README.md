@@ -1,6 +1,6 @@
-﻿## 🦄 wwm.swaggerApi
+﻿## 🦄 wwm.swagger-api
 
-> wwm.swaggerApi is a powerful swagger json document to api js, supports .NET 5 .
+> wwm.swagger-api is a powerful swagger json document to api js, supports .NET 5 .
 
     English |  中文
 
@@ -12,25 +12,21 @@
 - [√] The file name and interface initials are lowercase
 - [√] Read the local interface file
 - [√] Read the network interface file
-- [√] The default template can be downloaded
-- [√] Build an auto-rebuild bat file
-- [√] You can use a local custom razor template
 - [√] Support query parameters in post request
 - [√] Support delete request
 - [√] Support put request
 - [√] Support request with variable parameter in path
 - [√] Method name for subsequent operations of the custom interface
 - [√] Support excluded path name string or regular expression (exclude after match)
-- [] Support to generate TypeScript files
+- [√] Support to generate TypeScript files
 
 ## 📚 Documentation
-Install tool: dotnet tool install -g wwm.swaggerApi
-Update  tool：dotnet tool update -g wwm.swaggerApi
-At www.nuget.org lookup: https://www.nuget.org/packages/wwm.swaggerApi/
-
+How to use it: Download it, then modify the www.swagger-api.json configuration key, and then run the wwm.swagger-api .exe executor
 ## pack release
 dotnet pack
 
 ## 🗄 License
 
-[MIT](LICENSE)
+[MIT](https://opensource.org/licenses/MIT)
+
+Copyright (c) 2021-present, wwmin

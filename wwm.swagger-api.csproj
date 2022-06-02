@@ -8,19 +8,18 @@
 		<IsPackable>true</IsPackable>
 		<PackAsTool>true</PackAsTool>
 		<!--ToolCommandName 这里面的内容就是用来在安装工具之后，通过什么样的命令启动这个工具，及安装工具用的是 NuGet 包的 Id 而和执行工具用的命令可以不相同-->
-		<ToolCommandName>wwm.swaggerApi</ToolCommandName>
+		<ToolCommandName>wwm.swagger-api</ToolCommandName>
 		<Authors>wwmin</Authors>
 		<Description>
 			使用wwm.swaggerApi 将远程或本地swagger.json文件生成api.js/api.ts,省去前端copy api接口的时间
-			使用方法&gt;wwm.swaggerApi -f http://localhost:5000/swagger/v1/swagger.json
 		</Description>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageProjectUrl>https://github.com/wwmin/wwm.swaggerApi</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/wwmin/wwm.swaggerApi</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/wwmin/wwm.swagger-api</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/wwmin/wwm.swagger-api</RepositoryUrl>
 		<PackageTags>swagger json转api 调用js/ts文件生成器</PackageTags>
-		<AssemblyVersion>0.8.0.0</AssemblyVersion>
-		<FileVersion>0.8.0.0</FileVersion>
-		<Version>0.8.0</Version>
+		<AssemblyVersion>0.9.0.0</AssemblyVersion>
+		<FileVersion>0.9.0.0</FileVersion>
+		<Version>0.9.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
