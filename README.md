@@ -21,7 +21,34 @@
 - [√] Support to generate TypeScript files
 
 ## 📚 Documentation
-How to use it: Download it, then modify the www.swagger-api.json configuration key, and then run the wwm.swagger-api .exe executor
+How to use: 
+
+> Option 1: Use alone
+
+Download [wwm.swagger-api release](https://github.com/wwmin/wwm.swagger-api/releases)
+
+Then modify the 'wwm.swagger-api.json' configuration key, and then run cmd to execute the 'wwm.swagger-api.exe' program
+
+> way 2: Integrate into front-end package.json
+
+Put the downloaded file in the front-end project root directory and configure 'wwm.swagger-api.json'
+
+Added under scripts in package.json
+```
+"scripts": {
+	"api": "wwm.swagger-api"
+},
+```
+
+Or use a relative path
+
+```
+"scripts": {
+	"api": ".swaggerwwm.swagger-api"
+},
+```
+
+Then execute the 'npm run api'
 ## pack release
 dotnet pack
 

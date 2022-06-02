@@ -72,7 +72,6 @@ public class Config
         {
             throw new JsonException("json路径不能为空");
         }
-        Console.WriteLine(JsonSerializer.Serialize(config));
         if (config.OutPath.StartsWith("."))
         {
             config.OutPath = Path.Combine(currentDirectory, config.OutPath);

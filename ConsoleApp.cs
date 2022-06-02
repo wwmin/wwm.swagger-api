@@ -41,7 +41,7 @@ public class ConsoleApp
 ";
         ConsoleUtil.WriteLine(logo, ConsoleColor.DarkGreen);
         ConsoleUtil.Write(@"# Github # ", ConsoleColor.White);
-        ConsoleUtil.Write("https://github.com/wwmin/wwm.swaggerApi", ConsoleColor.Green);
+        ConsoleUtil.Write("https://github.com/wwmin/wwm.swagger-api.git", ConsoleColor.Green);
         ConsoleUtil.WriteLine($" {version}", ConsoleColor.DarkGreen);
 
         _config = Config.Build();
@@ -78,7 +78,7 @@ public class ConsoleApp
                 throw new ArgumentException($"错误的参数设置：请检查 配置文件中 JsonUrl 参数的正确性");
             }
 
-            ConsoleUtil.WriteLine($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取文件内容完毕\r\n", ConsoleColor.DarkGreen);
+            ConsoleUtil.WriteLine($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取swagger文件内容完毕\r\n", ConsoleColor.DarkGreen);
             #endregion
             #region 处理json
             //$ref=>@ref
@@ -98,7 +98,7 @@ public class ConsoleApp
                 string filePreText = $"import * as {interfacePre} from \"../apiInterface\";\n" +
                     "import http from \"../index\"\n\n";
                 TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre, _config);
-                ConsoleUtil.WriteLine("接口文件夹: " + baseFile, ConsoleColor.DarkRed);
+                ConsoleUtil.WriteLine("接口Api文件夹: " + baseFile, ConsoleColor.DarkRed);
 
             }
 
