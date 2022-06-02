@@ -1,8 +1,4 @@
-﻿using swagger2js_cli.Models;
-
-using System.Text;
-
-namespace swagger2js_cli.Processes;
+﻿namespace wwm.swaggerApi.Processes;
 
 public static class CSharpTypeToTypeScriptType
 {

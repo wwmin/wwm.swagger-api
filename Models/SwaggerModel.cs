@@ -1,4 +1,4 @@
-﻿namespace swagger2js_cli.Models;
+﻿namespace wwm.swaggerApi.Models;
 
 public class SwaggerModel
 {

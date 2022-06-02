@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 
 namespace wwm.swaggerApi;
@@ -14,19 +15,24 @@ public class Config
     /// <param name="configName"></param>
     /// <returns></returns>
     /// <exception cref="JsonException"></exception>
-    public static Config Build(string configName = "appsettings.json")
+    public static Config Build(string configName = "wwm.swagger-api.json")
     {
-        // 此为命令行执行路径,可能执行目录不在当前目录
+        // 1. 此为命令行执行路径,可能执行目录不在当前目录
         //var currentDirectory = Directory.GetCurrentDirectory();
-        //此为运行时所在的路径
-        var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
+        // 2. 此为运行时所在的路径 (使用路径加载时仍无效) 
+        //var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+        // 3. 程序进程所在目录
+        var currentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName);
+        if (string.IsNullOrEmpty(currentDirectory))
+        {
+            throw new ApplicationException("系统未获取到当前执行路径");
+        }
         string configPath = Path.Combine(currentDirectory, configName);
         var config = new Config();
         if (File.Exists(configPath))
         {
             StringBuilder sb = new StringBuilder();
             var allLines = File.ReadAllLines(configPath, encoding: Encoding.UTF8);
-            //var configText = File.ReadAllText(configPath, encoding: Encoding.UTF8);
             foreach (var line in allLines)
             {
                 string lineText = line?.Trim() ?? "";
@@ -65,6 +71,11 @@ public class Config
         if (string.IsNullOrEmpty(config.JsonUrl))
         {
             throw new JsonException("json路径不能为空");
+        }
+        Console.WriteLine(JsonSerializer.Serialize(config));
+        if (config.OutPath.StartsWith("."))
+        {
+            config.OutPath = Path.Combine(currentDirectory, config.OutPath);
         }
         return config;
     }

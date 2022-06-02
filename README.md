@@ -1,6 +1,6 @@
-﻿## 🦄 swagger2js_cli
+﻿## 🦄 wwm.swaggerApi
 
-> swagger2js_cli is a powerful swagger json document to api js, supports .NET 5 .
+> wwm.swaggerApi is a powerful swagger json document to api js, supports .NET 5 .
 
     English |  中文
 
@@ -24,9 +24,9 @@
 - [] Support to generate TypeScript files
 
 ## 📚 Documentation
-Install tool: dotnet tool install -g swagger2js_cli
-Update  tool：dotnet tool update -g swagger2js_cli
-At www.nuget.org lookup: https://www.nuget.org/packages/swagger2js_cli/
+Install tool: dotnet tool install -g wwm.swaggerApi
+Update  tool：dotnet tool update -g wwm.swaggerApi
+At www.nuget.org lookup: https://www.nuget.org/packages/wwm.swaggerApi/
 
 ## pack release
 dotnet pack

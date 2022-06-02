@@ -1,5 +1,5 @@
-﻿## 🦄 swagger2js_cli
-> swagger2js_cli 是一个有用的 swagger json 文档 转api.js dotnet cli 工具, 支持 .NET 5 及以上.
+﻿## 🦄 wwm.swaggerApi
+> wwm.swaggerApi 是一个有用的 swagger json 文档 转api.js dotnet cli 工具, 支持 .NET 5 及以上.
 
 <a href="README.zh-CN.md">English</a> |  <span>中文</span>
 
@@ -23,9 +23,9 @@
 - [] 支持生成TypeScript文件
 
 ## 📚 文档说明
-安装工具: dotnet tool install -g swagger2js_cli
-更新工具：dotnet tool update -g swagger2js_cli
-在nuget上查看 https://www.nuget.org/packages/swagger2js_cli/
+安装工具: dotnet tool install -g wwm.swaggerApi
+更新工具：dotnet tool update -g wwm.swaggerApi
+在nuget上查看 https://www.nuget.org/packages/wwm.swaggerApi/
 
 ## 打包
 dotnet pack

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace swagger2js_cli.Utils;
+namespace wwm.swaggerApi.Utils;
 
 /// <summary>
 /// json帮助类

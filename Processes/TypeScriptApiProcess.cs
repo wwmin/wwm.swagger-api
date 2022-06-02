@@ -1,8 +1,8 @@
-﻿using swagger2js_cli.Models;
+﻿using wwm.swaggerApi.Models;
 
 using System.Text;
 
-namespace swagger2js_cli.Processes;
+namespace wwm.swaggerApi.Processes;
 /// <summary>
 /// Api 处理
 /// </summary>

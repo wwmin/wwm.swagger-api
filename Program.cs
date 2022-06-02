@@ -1,4 +1,4 @@
-﻿namespace swagger2js_cli;
+﻿namespace wwm.swaggerApi;
 
 internal class Program
 {

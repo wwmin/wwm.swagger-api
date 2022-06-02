@@ -1,12 +1,11 @@
-﻿using swagger2js_cli.Models;
-using swagger2js_cli.Processes;
-
-using System.Drawing;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace swagger2js_cli;
+using wwm.swaggerApi.Models;
+using wwm.swaggerApi.Processes;
+
+namespace wwm.swaggerApi;
 
 /// <summary>
 /// Console App
@@ -27,25 +26,25 @@ public class ConsoleApp
     /// <exception cref="ArgumentException"></exception>
     public ConsoleApp(string[] args, ManualResetEvent wait)
     {
-        _config = Config.Build();
 
         var assembly = typeof(ConsoleApp).Assembly;
         var version = "v" + string.Join(".", assembly.GetName()?.Version?.ToString()?.Split(".", StringSplitOptions.RemoveEmptyEntries)?.Where((a, b) => b <= 2) ?? Array.Empty<string>());
         var logo = $@"
-                                        ___  _     
-                                       |__ \(_)    
-  _____      ____ _  __ _  __ _  ___ _ __ ) |_ ___ 
- / __\ \ /\ / / _` |/ _` |/ _` |/ _ \ '__/ /| / __|
- \__ \\ V  V / (_| | (_| | (_| |  __/ | / /_| \__ \
- |___/ \_/\_/ \__,_|\__, |\__, |\___|_||____| |___/
-                     __/ | __/ |           _/ |    
-                    |___/ |___/           |__/     
+                                                                                           _ 
+                                                                                          (_)
+ __      ____      ___ __ ___    _____      ____ _  __ _  __ _  ___ _ __ ______ __ _ _ __  _ 
+ \ \ /\ / /\ \ /\ / / '_ ` _ \  / __\ \ /\ / / _` |/ _` |/ _` |/ _ \ '__|______/ _` | '_ \| |
+  \ V  V /  \ V  V /| | | | | |_\__ \\ V  V / (_| | (_| | (_| |  __/ |        | (_| | |_) | |
+   \_/\_/    \_/\_/ |_| |_| |_(_)___/ \_/\_/ \__,_|\__, |\__, |\___|_|         \__,_| .__/|_|
+                                                    __/ | __/ |                     | |      
+                                                   |___/ |___/                      |_|      
 ";
-        ConsoleUtil.WriteLine(logo, ConsoleColor.White);
+        ConsoleUtil.WriteLine(logo, ConsoleColor.DarkGreen);
         ConsoleUtil.Write(@"# Github # ", ConsoleColor.White);
-        ConsoleUtil.Write("https://github.com/wwmin/swagger2js_cli", ConsoleColor.Green);
+        ConsoleUtil.Write("https://github.com/wwmin/wwm.swaggerApi", ConsoleColor.Green);
         ConsoleUtil.WriteLine($" {version}", ConsoleColor.DarkGreen);
 
+        _config = Config.Build();
         ArgsReadKey = true;
         #region 对Text.Json统一配置
         JsonSerializerOptions jsonOptions = new JsonSerializerOptions
@@ -107,7 +106,6 @@ public class ConsoleApp
             if (ArgsReadKey)
             {
                 Console.WriteLine("\r\n按任意键退出");
-                //Console.ReadKey();
             }
             wait.Set();
         }

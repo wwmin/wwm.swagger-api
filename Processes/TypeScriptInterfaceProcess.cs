@@ -1,9 +1,8 @@
-﻿using swagger2js_cli.Models;
+﻿using System.Text;
 
-using System.Text;
-using System.Text.Json;
+using wwm.swaggerApi.Models;
 
-namespace swagger2js_cli.Processes;
+namespace wwm.swaggerApi.Processes;
 /// <summary>
 /// 处理json文档
 /// </summary>

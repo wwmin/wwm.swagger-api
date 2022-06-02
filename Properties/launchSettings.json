@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "swagger2js_cli": {
+    "wwm.swaggerApi": {
       "commandName": "Project",
       "commandLineArgs": "-f http://localhost:5000/swagger/Default/swagger.json -o D:/api"
     }
