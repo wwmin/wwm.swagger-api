@@ -44,7 +44,7 @@ Or use a relative path
 
 ```
 "scripts": {
-	"api": ".swaggerwwm.swagger-api"
+	"api": ".\\swagger\\wwm.swagger-api"
 },
 ```
 
