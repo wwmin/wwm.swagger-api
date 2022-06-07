@@ -48,7 +48,7 @@ Or use a relative path
 },
 ```
 
-Then execute the 'npm run api'
+Then execute the `npm run api`
 ## pack release
 dotnet pack
 

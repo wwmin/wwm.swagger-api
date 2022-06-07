@@ -107,6 +107,9 @@ public class JsonSchema
 public class ReferenceObject
 {
     public string _ref { get; set; }
+
+    public string type { get; set; }
+    public string format { get; set; }
 }
 
 public class FormDataSchema

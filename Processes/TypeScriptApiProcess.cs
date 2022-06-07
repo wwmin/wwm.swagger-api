@@ -92,7 +92,7 @@ public static class TypeScriptApiProcess
             {
                 StringBuilder sb = new StringBuilder();
                 //使用单个对象形式输出
-                if (!string.IsNullOrEmpty(reqModel.summary)) sb.AppendLine($"/** {reqModel.summary} */");
+                if (!string.IsNullOrEmpty(reqModel?.summary)) sb.AppendLine($"/** {reqModel.summary} */");
                 //有多个请求类型
                 foreach (var method in methods)
                 {
@@ -158,7 +158,7 @@ public static class TypeScriptApiProcess
             {
                 sb.AppendLine($"{prefix_space_num}/** {p.description} */");
             }
-            sb.AppendLine($"{prefix_space_num}{p.name}: {CSharpTypeToTypeScriptType.Convert(null, p.schema.type)}{(p.required ? "" : " | null")}{(i == ps.Length - 1 ? "" : ",")}");
+            sb.AppendLine($"{prefix_space_num}{p.name}: {CSharpTypeToTypeScriptType.Convert(p.schema._ref ?? p.schema.items?.type, p.schema.type)}{(p.required ? "" : " | null")}{(i == ps.Length - 1 ? "" : ",")}");
         }
 
         sb.AppendLine($"}}\n");
