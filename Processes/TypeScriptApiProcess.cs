@@ -1,6 +1,7 @@
 ﻿using wwm.swaggerApi.Models;
 
 using System.Text;
+using System.Diagnostics;
 
 namespace wwm.swaggerApi.Processes;
 /// <summary>
@@ -146,6 +147,8 @@ public static class TypeScriptApiProcess
         var name = requestName + "Params";
         sb.AppendLine($"export interface {name} {{");
         List<string>? inPathList = null;
+        var allTypes = new HashSet<string>();
+        bool isNullable = false;
         for (int i = 0; i < ps.Length; i++)
         {
             var p = ps[i];
@@ -158,9 +161,19 @@ public static class TypeScriptApiProcess
             {
                 sb.AppendLine($"{prefix_space_num}/** {p.description} */");
             }
-            sb.AppendLine($"{prefix_space_num}{p.name}: {CSharpTypeToTypeScriptType.Convert(p.schema._ref ?? p.schema.items?.type, p.schema.type)}{(p.required ? "" : " | null")}{(i == ps.Length - 1 ? "" : ",")}");
+            var interfaceNameType = CSharpTypeToTypeScriptType.Convert(p.schema._ref ?? p.schema.items?.type, p.schema.type);
+            allTypes.Add(interfaceNameType);
+            if (isNullable == false && p.required == false) isNullable = true;
+            sb.AppendLine($"{prefix_space_num}{p.name}: {interfaceNameType}{(p.required ? "" : " | null")},");
         }
 
+        // 添加索引
+        var allTypeString = allTypes.Count <= 1 ? allTypes.FirstOrDefault() : allTypes.Aggregate((x, y) => x + " | " + y);
+        if (isNullable)
+        {
+            allTypeString += " | null";
+        }
+        sb.AppendLine($"{prefix_space_num}[index: string]: {allTypeString}");
         sb.AppendLine($"}}\n");
         return (sb.ToString(), name, inPathList);
     }

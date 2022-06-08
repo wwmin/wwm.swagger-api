@@ -10,7 +10,7 @@ public static class TypeScriptInterfaceProcess
 {
 
     #region GenerateTypeString
-    public static void GenerateTypeScriptTypesFromJsonModel(Components? jsonComponents, string filePath,Config _config)
+    public static void GenerateTypeScriptTypesFromJsonModel(Components? jsonComponents, string filePath, Config _config)
     {
         StringBuilder sb = new StringBuilder();
         if (jsonComponents == null)
@@ -35,28 +35,28 @@ public static class TypeScriptInterfaceProcess
             ConsoleUtil.WriteLine("生成接口: " + key, ConsoleColor.DarkCyan);
         }
         //TODO: 
-        var securitySchemes = jsonComponents.securitySchemes;
+        //var securitySchemes = jsonComponents.securitySchemes;
         //return sb.ToString();
         SaveToFile(filePath, sb.ToString());
     }
 
     /// <summary>
-    /// 生成接口
+    /// 生成Interface
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    private static string GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model)
+    private static StringBuilder? GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model)
     {
-        if (model == null) return "";
+        if (model == null) return null;
         //后缀是 _String _Int32 _Byte[] 等等的对象实体,内部是值类型,不需要定义接口
         var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(tsTypeName);
         if (refValue.isValue)
         {
-            return "";
+            return null;
         }
         string prefix_space_num = "  ";//默认两个空格
-        var typeScriptInterface = string.IsNullOrEmpty(model.description) ? "" : $"/** {model.description} */\n";
-        typeScriptInterface += $"export interface {tsTypeName} {{\n";
+        var typeScriptInterface = new StringBuilder(string.IsNullOrEmpty(model.description) ? "" : $"/** {model.description} */\n");
+        typeScriptInterface.AppendLine($"export interface {tsTypeName} {{");
         if (model.type == "object")
         {
             var properties = model.properties;
@@ -73,13 +73,13 @@ public static class TypeScriptInterfaceProcess
                         //typeScriptInterface += string.IsNullOrEmpty(value.description) ? value.description : $"/** {value.description} */\n";
                         if (value.@default == null)
                         {
-                            typeScriptInterface += $"{prefix_space_num}/** {value.description} */\n";
+                            typeScriptInterface.AppendLine($"{prefix_space_num}/** {value.description} */");
                         }
                         else
                         {
-                            typeScriptInterface += $"{prefix_space_num}/** {value.description}\n" +
-                                $"{prefix_space_num}* {value.@default }\n" +
-                                $"{prefix_space_num}*/\n";
+                            typeScriptInterface.AppendLine($"{prefix_space_num}/** {value.description}");
+                            typeScriptInterface.AppendLine($"{prefix_space_num}* {value.@default}");
+                            typeScriptInterface.AppendLine($"{prefix_space_num}*/");
                         }
                     }
                     // key : type
@@ -90,25 +90,20 @@ public static class TypeScriptInterfaceProcess
                         if (value.nullable)
                         {
                             isNullable = value.nullable;
-                            typeScriptInterface += $"{prefix_space_num}{key}: {t} | null,\n";
+                            typeScriptInterface.AppendLine($"{prefix_space_num}{key}: {t} | null,");
                         }
                         else
                         {
-                            typeScriptInterface += $"{prefix_space_num}{key}: {t},\n";
+                            typeScriptInterface.AppendLine($"{prefix_space_num}{key}: {t},");
                         }
                     }
-                    //                    else if (value.@enum != null)
-                    //                    {
-                    //                        typeScriptInterface += $@"{key}: {Convert(value.@enum)},
-                    //";
-                    //                    }
                     else if (value._ref != null)
                     {
                         var t = CSharpTypeToTypeScriptType.ParseRefType(value._ref);
                         if (t != null)
                         {
                             allTypes.Add(t);
-                            typeScriptInterface += $"{prefix_space_num}{key}: {t},\n";
+                            typeScriptInterface.AppendLine($"{prefix_space_num}{key}: {t},");
                         }
                     }
                 }
@@ -118,11 +113,11 @@ public static class TypeScriptInterfaceProcess
                 {
                     allTypeString += " | null";
                 }
-                typeScriptInterface += $"{prefix_space_num}/** 索引 */\n";
-                typeScriptInterface += $"{prefix_space_num}[index: string]: {allTypeString}\n";
+                typeScriptInterface.AppendLine($"{prefix_space_num}/** 索引 */");
+                typeScriptInterface.AppendLine($"{prefix_space_num}[index: string]: {allTypeString}");
             }
         }
-        typeScriptInterface += $"}}\n\n";
+        typeScriptInterface.AppendLine($"}}\n");
         return typeScriptInterface;
     }
 
