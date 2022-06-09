@@ -96,7 +96,7 @@ public class ConsoleApp
                 string baseFile = _config.OutPath + "api/";
                 string interfacePre = "IApi";
                 string filePreText = $"import * as {interfacePre} from \"../apiInterface\";\n" +
-                    "import http from \"../index\"\n\n";
+                    "import http from \"../index\";\n\n";
                 TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre, _config);
                 ConsoleUtil.WriteLine("接口Api文件夹: " + baseFile, ConsoleColor.DarkRed);
 

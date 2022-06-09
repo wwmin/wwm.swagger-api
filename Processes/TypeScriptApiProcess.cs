@@ -40,7 +40,7 @@ public static class TypeScriptApiProcess
             var requestUrlPathName = ParsePathToCamelName(parseeKey, "api", tag);
             //Console.WriteLine(tag + " : " + requestUrlPathName);
             //一个路径有多个请求, 则使用对象形式 account.code:{ get: ()=>{},post:()=>{} }
-            HttpRequestModel reqModel = null;
+            HttpRequestModel? reqModel = null;
             List<string> methods = new List<string>();
 
             if (value.get != null)
@@ -205,7 +205,29 @@ public static class TypeScriptApiProcess
         //}
         string paramType = parameters.paramInterfaceName;
         // 处理requestBody
-        var requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
+        var reqBodyContent = reqModel.requestBody?.content;
+
+        var requestBody = "";
+        if (reqBodyContent != null && reqBodyContent.Count > 0)
+        {
+            var schema = reqBodyContent.Where(p => p.Key == "application/json").FirstOrDefault().Value?.schema;
+            if (schema == null)
+            {
+                // 尝试读取form-data
+                schema = reqBodyContent.Where(p => p.Key == "multipart/form-data").FirstOrDefault().Value.schema;
+                if (schema != null)
+                {
+                    //是form-data类型
+                    requestBody = "FormData";
+                }
+            }
+            else
+            {
+                requestBody = schema?._ref == null ? schema?.type : schema?._ref;
+            }
+        }
+        // requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
+        requestBody = CSharpTypeToTypeScriptType.ParseRefType(requestBody);
         var hasRequestBody = !string.IsNullOrEmpty(requestBody);
         var hasParamType = !string.IsNullOrEmpty(paramType);
 

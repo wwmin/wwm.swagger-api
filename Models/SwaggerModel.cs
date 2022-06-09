@@ -1,5 +1,6 @@
 ﻿namespace wwm.swaggerApi.Models;
 
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
 public class SwaggerModel
 {
     public string openapi { get; set; }
@@ -73,20 +74,6 @@ public class Requestbody
     public Dictionary<string, JsonSchema> content { get; set; }
 }
 
-public class ResponseBody
-{
-    public string description { get; set; }
-    public Dictionary<string, JsonSchema> content { get; set; }
-}
-
-public class ResponseContentModel
-{
-
-    //public Dictionary<string, JsonSchema> application_json { get; set; }
-    //public Dictionary<string, JsonSchema> text_plain { get; set; }
-    //public Dictionary<string, JsonSchema> text_json { get; set; }
-}
-
 
 
 public class JsonSchema
@@ -108,15 +95,23 @@ public class ReferenceObject
 {
     public string _ref { get; set; }
 
+    public string? type { get; set; }
+    public string? format { get; set; }
+    /// <summary>
+    /// 当 type == object
+    /// </summary>
+    public Dictionary<string, PropertyTypeFormat>? properties { get; set; }
+}
+
+/// <summary>
+/// 对象属性的类型
+/// </summary>
+public class PropertyTypeFormat
+{
     public string type { get; set; }
     public string format { get; set; }
 }
 
-public class FormDataSchema
-{
-    public FormDataSchemaModel schema { get; set; }
-    public Dictionary<string, FormDataSchemaEncoding> encoding { get; set; }
-}
 
 public class FormDataSchemaModel
 {
@@ -131,16 +126,6 @@ public class FormDataSchemaPropertyModel
     public string format { get; set; }
     public bool nullable { get; set; }
 }
-
-public class FormDataSchemaEncoding
-{
-    public string style { get; set; }
-}
-
-//public class Responses
-//{
-//    public _200 _200 { get; set; }
-//}
 
 public class ResponseModel
 {
@@ -234,3 +219,4 @@ public class Tag
     public string name { get; set; }
     public string description { get; set; }
 }
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。

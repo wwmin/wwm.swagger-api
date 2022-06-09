@@ -106,6 +106,10 @@ public static class CSharpTypeToTypeScriptType
         {
             return ("boolean", true);
         }
+        if (refString == "FormData")
+        {
+            return ("FormData", true);
+        }
         return (refString, false);
     }
     #endregion
