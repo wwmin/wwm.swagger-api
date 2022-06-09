@@ -76,6 +76,9 @@ public class Config
         {
             config.OutPath = Path.Combine(currentDirectory, config.OutPath);
         }
+        if (string.IsNullOrWhiteSpace(config.ApiFolderName)) config.ApiFolderName = "api";
+        if (string.IsNullOrWhiteSpace(config.ApiInterfaceFolderName)) config.ApiInterfaceFolderName = "apiInterface";
+        if (string.IsNullOrWhiteSpace(config.ImportHttp)) config.ImportHttp = "import http from \"../index\"";
         return config;
     }
 
@@ -96,4 +99,20 @@ public class Config
     /// 函数自定尾参数
     /// </summary>
     public string FuncTailParameter { get; set; } = string.Empty;
+    /// <summary>
+    /// Api文件文件夹名称
+    /// </summary>
+    public string ApiFolderName { get; set; } = string.Empty;
+    /// <summary>
+    /// ApiInterface文件夹名称
+    /// </summary>
+    public string ApiInterfaceFolderName { get; set; } = string.Empty;
+    /// <summary>
+    /// ImportApi
+    /// </summary>
+    public string ImportHttp { get; set; } = string.Empty;
+    /// <summary>
+    /// 空格缩进个数
+    /// </summary>
+    public int IndentSpaceNum { get; set; } = 2;
 }

@@ -86,20 +86,18 @@ public class ConsoleApp
             var swagger = JsonSerializer.Deserialize<SwaggerModel>(jsondata, jsonOptions);
             // 生成Interface文件
             {
-                string filePath = _config.OutPath + "apiInterface/index.ts";
+                string filePath = _config.OutPath + $"{_config.ApiInterfaceFolderName}/index.ts";
                 TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath, _config);
                 ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
                 Console.WriteLine();
             }
             //生成api.{name}.ts文件
             {
-                string baseFile = _config.OutPath + "api/";
+                string baseFile = _config.OutPath + $"{_config.ApiFolderName}/";
                 string interfacePre = "IApi";
-                string filePreText = $"import * as {interfacePre} from \"../apiInterface\";\n" +
-                    "import http from \"../index\";\n\n";
+                string filePreText = $"import * as {interfacePre} from \"../{_config.ApiInterfaceFolderName}\";\n" + $"{_config.ImportHttp}\n\n";
                 TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre, _config);
                 ConsoleUtil.WriteLine("接口Api文件夹: " + baseFile, ConsoleColor.DarkRed);
-
             }
 
             #endregion

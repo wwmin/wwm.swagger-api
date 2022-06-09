@@ -14,14 +14,10 @@ public static class TypeScriptApiProcess
         if (swaggerModel == null) return;
         Dictionary<string, PathModel>? PathDic = swaggerModel.paths;
         if (PathDic == null) return;
-        string prefix_space_num = "  ";//默认两个空格
-        //string basePath = "D:/api/api/";
+        string prefix_space_num = _config.IndentSpaceNum > 0 ? Enumerable.Range(0, _config.IndentSpaceNum).Select(a => " ").Aggregate((x, y) => x + y) : "";//默认两个空格
         RemoveFileIfExist(basePath);
         string filePrefix = "api.";
         string filePost = ".ts";
-        //string interfacePre = "IApi";
-        //string filePreText = $"import * as {interfacePre} from \"../interface\";\n" +
-        //    "import http from \"../index\"\n\n";
         var keys = PathDic.Keys;
         Dictionary<string, bool> pathStatistic = new Dictionary<string, bool>();
         foreach (var key in keys)
@@ -38,7 +34,6 @@ public static class TypeScriptApiProcess
             }
             var parseeKey = ParseRoutePathToString(key);
             var requestUrlPathName = ParsePathToCamelName(parseeKey, "api", tag);
-            //Console.WriteLine(tag + " : " + requestUrlPathName);
             //一个路径有多个请求, 则使用对象形式 account.code:{ get: ()=>{},post:()=>{} }
             HttpRequestModel? reqModel = null;
             List<string> methods = new List<string>();
@@ -161,7 +156,7 @@ public static class TypeScriptApiProcess
             {
                 sb.AppendLine($"{prefix_space_num}/** {p.description} */");
             }
-            var interfaceNameType = CSharpTypeToTypeScriptType.Convert(p.schema._ref ?? p.schema.items?.type, p.schema.type);
+            var interfaceNameType = ProcessUtil.Convert(p.schema._ref ?? p.schema.items?.type, p.schema.type);
             allTypes.Add(interfaceNameType);
             if (isNullable == false && p.required == false) isNullable = true;
             sb.AppendLine($"{prefix_space_num}{p.name}: {interfaceNameType}{(p.required ? "" : " | null")},");
@@ -190,7 +185,7 @@ public static class TypeScriptApiProcess
     /// <param name="prefix_space_num"></param>
     /// <param name="methodPost">可为空,当不为空时,将在导出函数后缀添加 该变量值</param>
     /// <returns></returns>
-    private static (string content, string interfaceText) ConvertReqModelToApi(Config config, SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
+    private static (string content, string interfaceText) ConvertReqModelToApi(Config _config, SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
     {
         StringBuilder sb = new StringBuilder();
         //使用单个对象形式输出
@@ -227,16 +222,16 @@ public static class TypeScriptApiProcess
             }
         }
         // requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
-        requestBody = CSharpTypeToTypeScriptType.ParseRefType(requestBody);
+        requestBody = ProcessUtil.ParseRefType(requestBody);
         var hasRequestBody = !string.IsNullOrEmpty(requestBody);
         var hasParamType = !string.IsNullOrEmpty(paramType);
-        var funcTailParameter = string.IsNullOrWhiteSpace(config.FuncTailParameter) ? "" : config.FuncTailParameter;
-        var funcTailParameterNameList = CSharpTypeToTypeScriptType.ExtractParameterName(funcTailParameter);
+        var funcTailParameter = string.IsNullOrWhiteSpace(_config.FuncTailParameter) ? "" : _config.FuncTailParameter;
+        var funcTailParameterNameList = ProcessUtil.ExtractParameterName(funcTailParameter);
         var funcTailParameterNameListString = funcTailParameterNameList.Count > 0 ? $", {string.Join(", ", funcTailParameterNameList)}" : "";
 
         if (hasRequestBody)
         {
-            var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(requestBody!);
+            var refValue = ProcessUtil.ParseValueTypeFromRef(requestBody!);
             if (refValue.isValue)
             {
                 requestBody = refValue.content;
@@ -285,23 +280,23 @@ public static class TypeScriptApiProcess
             }
         }
         var realUrlPath = UrlPathToES6ParamsPath(path);
+        var httpFuncName = ProcessUtil.ExtractImportName(_config.ImportHttp, "http");
         if (hasRequestBody && hasParamType)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, body{funcTailParameterNameListString});");
+            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, params, body{funcTailParameterNameListString});");
         }
         else if (hasParamType)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}{funcTailParameterNameListString});");
+            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}{funcTailParameterNameListString});");
         }
         else if (hasRequestBody)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, body{funcTailParameterNameListString});");
+            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, body{funcTailParameterNameListString});");
         }
         else
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, {{}}{funcTailParameterNameListString});");
+            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, {{}}{funcTailParameterNameListString});");
         }
-        //sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`{(string.IsNullOrEmpty(paramType) ? "" : ", params")}{(hasRequestBody ? " , requestParams" : "")});");
         sb.AppendLine($"}}\n\n");
         return (sb.ToString(), parameters.content);
     }
@@ -335,7 +330,7 @@ public static class TypeScriptApiProcess
                 // 此处取json的返回值
                 if (value.content != null && value.content["application/json"] != null)
                 {
-                    var refType = CSharpTypeToTypeScriptType.ParseRefType(value.content["application/json"].schema._ref);
+                    var refType = ProcessUtil.ParseRefType(value.content["application/json"].schema._ref);
                     if (refType != null)
                     {
                         if (isRemoveWrapType)
@@ -352,19 +347,19 @@ public static class TypeScriptApiProcess
                                     return (data.type, true);
                                 }
                                 // 因 值 类型被系统包装成了对象类型, 实际返回值还是值类型, swagger或框架的bug?
-                                var subType = CSharpTypeToTypeScriptType.ParseRefType(data._ref);
+                                var subType = ProcessUtil.ParseRefType(data._ref);
                                 if (subType != null)
                                 {
-                                    var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(subType);
+                                    var refValue = ProcessUtil.ParseValueTypeFromRef(subType);
                                     if (refValue.isValue == false && refValue.content.StartsWith("ActionResult_"))
                                     {
                                         if (schemas[refValue.content].properties.TryGetValue("value", out var subData))
                                         {
                                             //系统过度包装了ActionResult类型
-                                            var subSubType = CSharpTypeToTypeScriptType.ParseRefType(subData._ref);
+                                            var subSubType = ProcessUtil.ParseRefType(subData._ref);
                                             if (subSubType != null)
                                             {
-                                                refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(subSubType);
+                                                refValue = ProcessUtil.ParseValueTypeFromRef(subSubType);
                                             }
                                         }
                                     }
@@ -372,7 +367,7 @@ public static class TypeScriptApiProcess
                                 }
                                 else if (data.@type == "array")
                                 {
-                                    var arrayType = CSharpTypeToTypeScriptType.ParseRefType(data.items._ref);
+                                    var arrayType = ProcessUtil.ParseRefType(data.items._ref);
                                     if (arrayType == null)
                                     {
                                         if (data.items._ref != null)
@@ -409,6 +404,7 @@ public static class TypeScriptApiProcess
     /// <returns></returns>
     private static string ParseRoutePathToString(string s)
     {
+        if (s.Length < 3 || !s.Contains("{")) return s;
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.Length; i++)
         {

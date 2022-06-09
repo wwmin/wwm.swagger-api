@@ -2,7 +2,7 @@
 
 namespace wwm.swaggerApi.Processes;
 
-public static class CSharpTypeToTypeScriptType
+public static class ProcessUtil
 {
     #region Convert Type
 
@@ -152,6 +152,22 @@ public static class CSharpTypeToTypeScriptType
             paramNameList.Add(sb.ToString());
         }
         return paramNameList;
+    }
+
+    /// <summary>
+    /// 将import xx as xxx from xx 字符串,提取参数
+    /// </summary>
+    /// <param name="importString"></param>
+    /// <returns></returns>
+    public static string ExtractImportName(string importString, string defaultName = "http")
+    {
+        var importIndex = importString.IndexOf("import");
+        var fromIndex = importString.IndexOf("from");
+        if (importIndex + 6 >= fromIndex) return defaultName;
+
+        var paramList = importString[(importIndex + 6)..fromIndex].Split(" ", StringSplitOptions.RemoveEmptyEntries);
+        if (paramList.Length == 0) return defaultName;
+        return paramList[paramList.Length - 1];
     }
     #endregion
 

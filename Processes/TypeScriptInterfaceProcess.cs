@@ -17,6 +17,7 @@ public static class TypeScriptInterfaceProcess
         {
             return;
         }
+        string prefix_space_num = _config.IndentSpaceNum > 0 ? Enumerable.Range(0, _config.IndentSpaceNum).Select(a => " ").Aggregate((x, y) => x + y) : "";//默认两个空格
         sb.AppendLine(_config.FileHeadText);
         //var schemas = GenerateSchemasTypeScriptType(jsonComponents.schemas);
         foreach (var key in jsonComponents.schemas.Keys)
@@ -24,12 +25,12 @@ public static class TypeScriptInterfaceProcess
             var value = jsonComponents.schemas[key];
             if (value.@enum != null)
             {
-                var typeScriptEnum = GenerateScheasTypeScriptEnum(key, value);
+                var typeScriptEnum = GenerateScheasTypeScriptEnum(key, value, prefix_space_num);
                 sb.Append(typeScriptEnum);
             }
             else
             {
-                var typeScriptType = GenerateSchemasTypeScriptInterface(key, value);
+                var typeScriptType = GenerateSchemasTypeScriptInterface(key, value, prefix_space_num);
                 sb.Append(typeScriptType);
             }
             ConsoleUtil.WriteLine("生成接口: " + key, ConsoleColor.DarkCyan);
@@ -45,16 +46,16 @@ public static class TypeScriptInterfaceProcess
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    private static StringBuilder? GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model)
+    private static StringBuilder? GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model, string prefix_space_num)
     {
         if (model == null) return null;
         //后缀是 _String _Int32 _Byte[] 等等的对象实体,内部是值类型,不需要定义接口
-        var refValue = CSharpTypeToTypeScriptType.ParseValueTypeFromRef(tsTypeName);
+        var refValue = ProcessUtil.ParseValueTypeFromRef(tsTypeName);
         if (refValue.isValue)
         {
             return null;
         }
-        string prefix_space_num = "  ";//默认两个空格
+        // string prefix_space_num = "  ";//默认两个空格
         var typeScriptInterface = new StringBuilder(string.IsNullOrEmpty(model.description) ? "" : $"/** {model.description} */\n");
         typeScriptInterface.AppendLine($"export interface {tsTypeName} {{");
         if (model.type == "object")
@@ -85,7 +86,7 @@ public static class TypeScriptInterfaceProcess
                     // key : type
                     if (value.type != null)
                     {
-                        var t = CSharpTypeToTypeScriptType.Convert(value.items?._ref, value.type);
+                        var t = ProcessUtil.Convert(value.items?._ref, value.type);
                         allTypes.Add(t);
                         if (value.nullable)
                         {
@@ -99,7 +100,7 @@ public static class TypeScriptInterfaceProcess
                     }
                     else if (value._ref != null)
                     {
-                        var t = CSharpTypeToTypeScriptType.ParseRefType(value._ref);
+                        var t = ProcessUtil.ParseRefType(value._ref);
                         if (t != null)
                         {
                             allTypes.Add(t);
@@ -127,10 +128,10 @@ public static class TypeScriptInterfaceProcess
     /// <param name="tsTypeName"></param>
     /// <param name="model"></param>
     /// <returns></returns>
-    private static string GenerateScheasTypeScriptEnum(string tsTypeName, SchemasModel model)
+    private static string GenerateScheasTypeScriptEnum(string tsTypeName, SchemasModel model, string prefix_space_num)
     {
         if (model == null || string.IsNullOrEmpty(model.description)) return "";
-        string prefix_space_num = "  ";//默认两个空格
+        // string prefix_space_num = "  ";//默认两个空格
         var typeScriptEnum = "";
 
         var enumDescriptionList = model.description.Split(new string[] { "<br />&nbsp;", "<br />" }, StringSplitOptions.RemoveEmptyEntries);
