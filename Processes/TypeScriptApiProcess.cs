@@ -85,7 +85,7 @@ public static class TypeScriptApiProcess
             }
             if (methods.Count == 1 && reqModel != null)
             {
-                var apiValue = ConvertReqModelToApi(swaggerModel, reqModel, key, requestUrlPathName, methods.FirstOrDefault()!, interfacePre, prefix_space_num);
+                var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, methods.FirstOrDefault()!, interfacePre, prefix_space_num);
                 if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
                 SaveFile(fileName, apiValue.content, true);
             }
@@ -99,7 +99,7 @@ public static class TypeScriptApiProcess
                 {
                     reqModel = value[method]!;
                     if (reqModel == null) continue;
-                    var apiValue = ConvertReqModelToApi(swaggerModel, reqModel, key, requestUrlPathName, method, interfacePre, prefix_space_num, "_" + method.ToUpperFirst());
+                    var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, method, interfacePre, prefix_space_num, "_" + method.ToUpperFirst());
                     if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
                     SaveFile(fileName, apiValue.content, true);
                 }
@@ -190,7 +190,7 @@ public static class TypeScriptApiProcess
     /// <param name="prefix_space_num"></param>
     /// <param name="methodPost">可为空,当不为空时,将在导出函数后缀添加 该变量值</param>
     /// <returns></returns>
-    private static (string content, string interfaceText) ConvertReqModelToApi(SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
+    private static (string content, string interfaceText) ConvertReqModelToApi(Config config, SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
     {
         StringBuilder sb = new StringBuilder();
         //使用单个对象形式输出
@@ -230,6 +230,9 @@ public static class TypeScriptApiProcess
         requestBody = CSharpTypeToTypeScriptType.ParseRefType(requestBody);
         var hasRequestBody = !string.IsNullOrEmpty(requestBody);
         var hasParamType = !string.IsNullOrEmpty(paramType);
+        var funcTailParameter = string.IsNullOrWhiteSpace(config.FuncTailParameter) ? "" : config.FuncTailParameter;
+        var funcTailParameterNameList = CSharpTypeToTypeScriptType.ExtractParameterName(funcTailParameter);
+        var funcTailParameterNameListString = funcTailParameterNameList.Count > 0 ? $", {string.Join(", ", funcTailParameterNameList)}" : "";
 
         if (hasRequestBody)
         {
@@ -244,21 +247,21 @@ public static class TypeScriptApiProcess
             }
             if (hasParamType)
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}, loading: boolean = true) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}, {funcTailParameter}) => {{");
             }
             else
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}, loading: boolean = true) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}, {funcTailParameter}) => {{");
             }
         }
         else if (hasParamType)
         {
 
-            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}, loading: boolean = true) => {{");
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}, {funcTailParameter}) => {{");
         }
         else
         {
-            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (loading: boolean = true) => {{");
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = ({funcTailParameter}) => {{");
         }
         if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
         {
@@ -284,19 +287,19 @@ public static class TypeScriptApiProcess
         var realUrlPath = UrlPathToES6ParamsPath(path);
         if (hasRequestBody && hasParamType)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, body, loading);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, body{funcTailParameterNameListString});");
         }
         else if (hasParamType)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}, loading);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}{funcTailParameterNameListString});");
         }
         else if (hasRequestBody)
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, body, loading);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, body{funcTailParameterNameListString});");
         }
         else
         {
-            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, {{}}, loading);");
+            sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, {{}}{funcTailParameterNameListString});");
         }
         //sb.AppendLine($"{prefix_space_num}return http.{methodName}<{responseType.content}>(`{realUrlPath}`{(string.IsNullOrEmpty(paramType) ? "" : ", params")}{(hasRequestBody ? " , requestParams" : "")});");
         sb.AppendLine($"}}\n\n");

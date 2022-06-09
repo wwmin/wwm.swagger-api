@@ -1,5 +1,6 @@
 ﻿{
   "OutPath": "D:\\work\\bionic\\web\\src\\api\\",
   "JsonUrl": "http://localhost:5000/swagger/Default/swagger.json",
-  "FileHeadText": "/**\n * 由 wwm.swagger-api 工具自动生成\n */"
-} 
+  "FileHeadText": "/**\n * 由 wwm.swagger-api 工具自动生成\n */",
+  "FuncTailParameter": "loading: boolean = true"
+}

@@ -92,4 +92,8 @@ public class Config
     /// 文件头文字
     /// </summary>
     public string FileHeadText { get; set; } = string.Empty;
+    /// <summary>
+    /// 函数自定尾参数
+    /// </summary>
+    public string FuncTailParameter { get; set; } = string.Empty;
 }

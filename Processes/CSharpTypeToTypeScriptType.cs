@@ -1,4 +1,6 @@
-﻿namespace wwm.swaggerApi.Processes;
+﻿using System.Text;
+
+namespace wwm.swaggerApi.Processes;
 
 public static class CSharpTypeToTypeScriptType
 {
@@ -114,6 +116,43 @@ public static class CSharpTypeToTypeScriptType
     }
     #endregion
 
-
+    #region Extract Parameter Name
+    /// <summary>
+    /// 将字符串化的参数字符串,提取参数
+    /// <code>loading: boolean = true, callbackFn: (param: any) => any</code>
+    /// <code>loading,callbackFn</code>
+    /// </summary>
+    /// <param name="parameterString"></param>
+    /// <returns></returns>
+    public static List<string> ExtractParameterName(string parameterString)
+    {
+        if (string.IsNullOrWhiteSpace(parameterString))
+        {
+            return new List<string>();
+        }
+        var ps = parameterString.Split(",");
+        List<string> paramNameList = new List<string>(ps.Length);
+        foreach (var item in ps)
+        {
+            var sb = new StringBuilder();
+            foreach (var c in item)
+            {
+                // 跳过前面的空格
+                if (sb.Length == 0)
+                {
+                    if (Char.IsWhiteSpace(c)) continue;
+                    sb.Append(c);
+                }
+                else
+                {
+                    if (Char.IsLetterOrDigit(c)) sb.Append(c);
+                    else break;
+                }
+            }
+            paramNameList.Add(sb.ToString());
+        }
+        return paramNameList;
+    }
+    #endregion
 
 }
