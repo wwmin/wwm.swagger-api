@@ -1,10 +1,10 @@
-﻿namespace wwm.swaggerApi;
+﻿namespace wwm.swagger_api;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
-        if (args != null && args.Length == 0) args = new[] { "?" };
+        if (args == null || args.Length == 0) args = new[] { "?" };
         ManualResetEvent wait = new(false);
         new Thread(() =>
         {

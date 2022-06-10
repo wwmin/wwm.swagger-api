@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace wwm.swaggerApi.Processes;
+namespace wwm.swagger_api.Processes;
 
 public static class ProcessUtil
 {

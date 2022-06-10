@@ -11,7 +11,7 @@
 		<ToolCommandName>wwm.swagger-api</ToolCommandName>
 		<Authors>wwmin</Authors>
 		<Description>
-			使用wwm.swaggerApi 将远程或本地swagger.json文件生成api.js/api.ts,省去前端copy api接口的时间
+			使用wwm.swagger-api 将远程或本地swagger.json文件生成api.js/api.ts,省去前端copy api接口的时间
 		</Description>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageProjectUrl>https://github.com/wwmin/wwm.swagger-api</PackageProjectUrl>
@@ -20,6 +20,9 @@
 		<AssemblyVersion>0.9.3.0</AssemblyVersion>
 		<FileVersion>0.9.3.0</FileVersion>
 		<Version>0.9.3</Version>
+		<PackageId>wwm.swagger_api</PackageId>
+		<AssemblyName></AssemblyName>
+		<RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

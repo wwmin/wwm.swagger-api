@@ -1,4 +1,5 @@
 ﻿{
+  "ScriptType": "ts", // js 或 ts
   "OutPath": "D:\\work\\bionic\\web\\src\\api\\", // 输出路径, 可为相对路径和绝对路径, 不可为空
   "JsonUrl": "http://localhost:5000/swagger/Default/swagger.json", // 读取swagger json的路径,可为url也为本地路径, 不可为空
   "FileHeadText": "/**\n * 由 wwm.swagger-api 工具自动生成\n */", // 自定义文件头信息, 可为空

@@ -1,4 +1,4 @@
-﻿namespace wwm.swaggerApi;
+﻿namespace wwm.swagger_api;
 
 /// <summary>
 /// Console 帮助类

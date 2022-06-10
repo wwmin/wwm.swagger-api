@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace wwm.swaggerApi;
+namespace wwm.swagger_api;
 
 /// <summary>
 /// 配置项
@@ -72,6 +72,19 @@ public class Config
         {
             throw new JsonException("json路径不能为空");
         }
+        config.ScriptType = config.ScriptType.ToLower();
+        if (config.ScriptType == "js" || config.ScriptType == "javascript")
+        {
+            config.ScriptType = Constants.ScriptType.JavaScript;
+        }
+        else if (config.ScriptType == "ts" || config.ScriptType == "typescript")
+        {
+            config.ScriptType = Constants.ScriptType.TypeScript;
+        }
+        else
+        {
+            throw new JsonException($"选择输出的脚本类型{nameof(config.ScriptType)}不正确");
+        }
         if (config.OutPath.StartsWith("."))
         {
             config.OutPath = Path.Combine(currentDirectory, config.OutPath);
@@ -81,6 +94,11 @@ public class Config
         if (string.IsNullOrWhiteSpace(config.ImportHttp)) config.ImportHttp = "import http from \"../index\"";
         return config;
     }
+
+    /// <summary>
+    /// 输出脚本类型 , js/ts/javascript/typescript => JavaScript / TypeScript
+    /// </summary>
+    public string ScriptType { get; set; } = string.Empty;
 
 
     /// <summary>

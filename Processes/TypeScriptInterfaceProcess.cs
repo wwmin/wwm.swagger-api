@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-using wwm.swaggerApi.Models;
+using wwm.swagger_api.Models;
 
-namespace wwm.swaggerApi.Processes;
+namespace wwm.swagger_api.Processes;
 /// <summary>
 /// 处理json文档
 /// </summary>

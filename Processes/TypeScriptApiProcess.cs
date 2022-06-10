@@ -1,9 +1,9 @@
-﻿using wwm.swaggerApi.Models;
+﻿using wwm.swagger_api.Models;
 
 using System.Text;
 using System.Diagnostics;
 
-namespace wwm.swaggerApi.Processes;
+namespace wwm.swagger_api.Processes;
 /// <summary>
 /// Api 处理
 /// </summary>
@@ -12,12 +12,13 @@ public static class TypeScriptApiProcess
     public static void GenerateTypeScriptApiFromJsonModel(SwaggerModel? swaggerModel, string basePath, string filePreText, string interfacePre, Config _config)
     {
         if (swaggerModel == null) return;
+        bool isTs = _config.ScriptType == Constants.ScriptType.TypeScript;
         Dictionary<string, PathModel>? PathDic = swaggerModel.paths;
         if (PathDic == null) return;
         string prefix_space_num = _config.IndentSpaceNum > 0 ? Enumerable.Range(0, _config.IndentSpaceNum).Select(a => " ").Aggregate((x, y) => x + y) : "";//默认两个空格
         RemoveFileIfExist(basePath);
         string filePrefix = "api.";
-        string filePost = ".ts";
+        string filePost = isTs ? ".ts" : ".js";
         var keys = PathDic.Keys;
         Dictionary<string, bool> pathStatistic = new Dictionary<string, bool>();
         foreach (var key in keys)
@@ -81,7 +82,10 @@ public static class TypeScriptApiProcess
             if (methods.Count == 1 && reqModel != null)
             {
                 var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, methods.FirstOrDefault()!, interfacePre, prefix_space_num);
-                if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                if (isTs)
+                {
+                    if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                }
                 SaveFile(fileName, apiValue.content, true);
             }
             else
@@ -95,7 +99,10 @@ public static class TypeScriptApiProcess
                     reqModel = value[method]!;
                     if (reqModel == null) continue;
                     var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, method, interfacePre, prefix_space_num, "_" + method.ToUpperFirst());
-                    if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                    if (isTs)
+                    {
+                        if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                    }
                     SaveFile(fileName, apiValue.content, true);
                 }
             }
@@ -228,7 +235,7 @@ public static class TypeScriptApiProcess
         var funcTailParameter = string.IsNullOrWhiteSpace(_config.FuncTailParameter) ? "" : _config.FuncTailParameter;
         var funcTailParameterNameList = ProcessUtil.ExtractParameterName(funcTailParameter);
         var funcTailParameterNameListString = funcTailParameterNameList.Count > 0 ? $", {string.Join(", ", funcTailParameterNameList)}" : "";
-
+        bool isTs = _config.ScriptType == Constants.ScriptType.TypeScript;
         if (hasRequestBody)
         {
             var refValue = ProcessUtil.ParseValueTypeFromRef(requestBody!);
@@ -242,17 +249,38 @@ public static class TypeScriptApiProcess
             }
             if (hasParamType)
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}, {funcTailParameter}) => {{");
+                if (isTs)
+                {
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}, {funcTailParameter}) => {{");
+                }
+                else
+                {
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, body, {funcTailParameter}) => {{");
+                }
             }
             else
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}, {funcTailParameter}) => {{");
+                if (isTs)
+                {
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}, {funcTailParameter}) => {{");
+                }
+                else
+                {
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body, {funcTailParameter}) => {{");
+
+                }
             }
         }
         else if (hasParamType)
         {
-
-            sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}, {funcTailParameter}) => {{");
+            if (isTs)
+            {
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}, {funcTailParameter}) => {{");
+            }
+            else
+            {
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, {funcTailParameter}) => {{");
+            }
         }
         else
         {
@@ -270,32 +298,55 @@ public static class TypeScriptApiProcess
                 sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = params;");
             }
         }
-        // 处理出参
-        var responseType = ParseResponseType(swaggerModel, reqModel.responses, true);
-        if (!responseType.content.StartsWith("any"))
-        {
-            if (!responseType.isValueType)
-            {
-                responseType.content = interfacePre + "." + responseType.content;
-            }
-        }
+
         var realUrlPath = UrlPathToES6ParamsPath(path);
         var httpFuncName = ProcessUtil.ExtractImportName(_config.ImportHttp, "http");
-        if (hasRequestBody && hasParamType)
+        if (isTs)
         {
-            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, params, body{funcTailParameterNameListString});");
-        }
-        else if (hasParamType)
-        {
-            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}{funcTailParameterNameListString});");
-        }
-        else if (hasRequestBody)
-        {
-            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, body{funcTailParameterNameListString});");
+            // 处理出参
+            var responseType = ParseResponseType(swaggerModel, reqModel.responses, true);
+            if (!responseType.content.StartsWith("any"))
+            {
+                if (!responseType.isValueType)
+                {
+                    responseType.content = interfacePre + "." + responseType.content;
+                }
+            }
+            if (hasRequestBody && hasParamType)
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, params, body{funcTailParameterNameListString});");
+            }
+            else if (hasParamType)
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, params, {{}}{funcTailParameterNameListString});");
+            }
+            else if (hasRequestBody)
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, body{funcTailParameterNameListString});");
+            }
+            else
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, {{}}{funcTailParameterNameListString});");
+            }
         }
         else
         {
-            sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}<{responseType.content}>(`{realUrlPath}`, {{}}, {{}}{funcTailParameterNameListString});");
+            if (hasRequestBody && hasParamType)
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}(`{realUrlPath}`, params, body{funcTailParameterNameListString});");
+            }
+            else if (hasParamType)
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}(`{realUrlPath}`, params, {{}}{funcTailParameterNameListString});");
+            }
+            else if (hasRequestBody)
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}(`{realUrlPath}`, {{}}, body{funcTailParameterNameListString});");
+            }
+            else
+            {
+                sb.AppendLine($"{prefix_space_num}return {httpFuncName}.{methodName}(`{realUrlPath}`, {{}}, {{}}{funcTailParameterNameListString});");
+            }
         }
         sb.AppendLine($"}}\n\n");
         return (sb.ToString(), parameters.content);

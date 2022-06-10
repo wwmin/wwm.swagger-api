@@ -3,10 +3,10 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-using wwm.swaggerApi.Models;
-using wwm.swaggerApi.Processes;
+using wwm.swagger_api.Models;
+using wwm.swagger_api.Processes;
 
-namespace wwm.swaggerApi;
+namespace wwm.swagger_api;
 
 /// <summary>
 /// Console App
@@ -27,7 +27,8 @@ public class ConsoleApp
     /// <exception cref="ArgumentException"></exception>
     public ConsoleApp(string[] args, ManualResetEvent wait)
     {
-
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         var assembly = typeof(ConsoleApp).Assembly;
         var version = "v" + string.Join(".", assembly.GetName()?.Version?.ToString()?.Split(".", StringSplitOptions.RemoveEmptyEntries)?.Where((a, b) => b <= 2) ?? Array.Empty<string>());
         var logo = $@"
@@ -44,8 +45,7 @@ public class ConsoleApp
         ConsoleUtil.Write(@"# Github # ", ConsoleColor.White);
         ConsoleUtil.Write("https://github.com/wwmin/wwm.swagger-api.git", ConsoleColor.Green);
         ConsoleUtil.WriteLine($" {version}", ConsoleColor.DarkGreen);
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
+
         _config = Config.Build();
         ArgsReadKey = true;
         #region 对Text.Json统一配置
@@ -60,7 +60,7 @@ public class ConsoleApp
         {
             string jsondata = string.Empty;
             #region 读取json文件内容
-            if (IsUrl(_config.JsonUrl))
+            if (StringUtil.IsUrl(_config.JsonUrl))
             {
                 var client = new HttpClient();
                 var res = client.GetAsync(_config.JsonUrl).Result;
@@ -83,25 +83,39 @@ public class ConsoleApp
             ConsoleUtil.WriteLine($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取swagger文件内容完毕\r\n", ConsoleColor.DarkGreen);
             #endregion
             #region 处理json
+
             //$ref=>@ref
             jsondata = jsondata.Replace("$ref", "_ref");
             var swagger = JsonSerializer.Deserialize<SwaggerModel>(jsondata, jsonOptions);
-            Task generateInterfaceTask = Task.Run(() =>
+            Task generateInterfaceTask = Task.FromResult(() => 0);
+            if (_config.ScriptType == Constants.ScriptType.TypeScript)
             {
-                // 生成Interface文件
-                string filePath = _config.OutPath + $"{_config.ApiInterfaceFolderName}/index.ts";
-                TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath, _config);
-                ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
-                Console.WriteLine();
+                generateInterfaceTask = Task.Run(() =>
+               {
+                   // 生成Interface文件
+                   string filePath = _config.OutPath + $"{_config.ApiInterfaceFolderName}/index.ts";
+                   TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath, _config);
+                   ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
+                   Console.WriteLine();
 
-            });
+               });
+            }
+
+
 
             //生成api.{name}.ts文件
             Task generateApiTask = Task.Run(() =>
             {
                 string baseFile = _config.OutPath + $"{_config.ApiFolderName}/";
-                string interfacePre = "IApi";
-                string filePreText = $"import * as {interfacePre} from \"../{_config.ApiInterfaceFolderName}\";\n" + $"{_config.ImportHttp}\n\n";
+                string interfacePre = "";
+                string filePreText = "";
+                if (_config.ScriptType == Constants.ScriptType.TypeScript)
+                {
+                    interfacePre = "IApi";
+                    filePreText = $"import * as {interfacePre} from \"../{_config.ApiInterfaceFolderName}\";\n";
+                }
+
+                filePreText += $"{_config.ImportHttp}\n\n";
                 TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre, _config);
                 ConsoleUtil.WriteLine("接口Api文件夹: " + baseFile, ConsoleColor.DarkRed);
             });
@@ -138,6 +152,4 @@ public class ConsoleApp
         }
         return res;
     }
-
-    private static bool IsUrl(string urlStr) => Regex.IsMatch(urlStr, @"^((https?)(:))?(\/\/)(\w*|\d*)");
 }
