@@ -2,7 +2,7 @@
 
 > wwm.swagger-api is a powerful swagger json document to api js, supports .NET 5 .
 
-    English |  中文
+<span>English</span> |  <a href="README.zh-CN.md">中文</a>
 
 ## feature
 - [√] Export the get parameter

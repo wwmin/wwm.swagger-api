@@ -1,7 +1,7 @@
 ﻿## 🦄 wwm.swagger-api
-> wwm.swagger-api 是一个有用的 swagger json 文档 转api.js dotnet cli 工具, 支持 .NET 5 及以上.
+> wwm.swagger-api 是一个有用的 swagger json 文档 转api.js/api.ts dotnet cli 工具, 支持 .NET 5 及以上.
 
-<a href="README.zh-CN.md">English</a> |  <span>中文</span>
+<a href="README.md">English</a> |  <span>中文</span>
 
 ## 功能
 - [√] 导出get参数
