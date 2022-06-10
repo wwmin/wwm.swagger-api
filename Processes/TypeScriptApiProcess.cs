@@ -305,7 +305,8 @@ public static class TypeScriptApiProcess
         {
             // 处理出参
             var responseType = ParseResponseType(swaggerModel, reqModel.responses, true);
-            if (!responseType.content.StartsWith("any"))
+
+            if (responseType.content != null && !responseType.content.StartsWith("any"))
             {
                 if (!responseType.isValueType)
                 {
@@ -391,6 +392,7 @@ public static class TypeScriptApiProcess
                             if (schemas == null) return ("any", false);
                             var dataRef = schemas.Keys.Where(p => p == refType).FirstOrDefault();
                             if (dataRef == null) return ("any", false);
+                            if (dataRef.EndsWith("_Object")) return ("object", true);
                             if (schemas[dataRef].properties.TryGetValue("data", out var data))
                             {
                                 if (data._ref == null && data.items == null)
