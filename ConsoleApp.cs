@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -43,7 +44,8 @@ public class ConsoleApp
         ConsoleUtil.Write(@"# Github # ", ConsoleColor.White);
         ConsoleUtil.Write("https://github.com/wwmin/wwm.swagger-api.git", ConsoleColor.Green);
         ConsoleUtil.WriteLine($" {version}", ConsoleColor.DarkGreen);
-
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         _config = Config.Build();
         ArgsReadKey = true;
         #region 对Text.Json统一配置
@@ -84,26 +86,31 @@ public class ConsoleApp
             //$ref=>@ref
             jsondata = jsondata.Replace("$ref", "_ref");
             var swagger = JsonSerializer.Deserialize<SwaggerModel>(jsondata, jsonOptions);
-            // 生成Interface文件
+            Task generateInterfaceTask = Task.Run(() =>
             {
+                // 生成Interface文件
                 string filePath = _config.OutPath + $"{_config.ApiInterfaceFolderName}/index.ts";
                 TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath, _config);
                 ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
                 Console.WriteLine();
-            }
+
+            });
+
             //生成api.{name}.ts文件
+            Task generateApiTask = Task.Run(() =>
             {
                 string baseFile = _config.OutPath + $"{_config.ApiFolderName}/";
                 string interfacePre = "IApi";
                 string filePreText = $"import * as {interfacePre} from \"../{_config.ApiInterfaceFolderName}\";\n" + $"{_config.ImportHttp}\n\n";
                 TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre, _config);
                 ConsoleUtil.WriteLine("接口Api文件夹: " + baseFile, ConsoleColor.DarkRed);
-            }
-
+            });
+            Task.WaitAll(generateInterfaceTask, generateApiTask);
             #endregion
             if (ArgsReadKey)
             {
-                Console.WriteLine("\r\n按任意键退出");
+                sw.Stop();
+                Console.WriteLine("\r\n按任意键退出,共用时:" + sw.ElapsedMilliseconds / 1000.0 + "秒");
             }
             wait.Set();
         }

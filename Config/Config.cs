@@ -39,11 +39,11 @@ public class Config
                 if (lineText.StartsWith("\"OutPath\""))
                 {
                     lineText = lineText.Replace("\\", "/");
-                    sb.Append(lineText);
+                    sb.AppendLine(lineText);
                 }
                 else
                 {
-                    sb.Append(line);
+                    sb.AppendLine(line);
                 }
             }
             var configText = sb.ToString();
@@ -51,8 +51,8 @@ public class Config
             {
                 AllowTrailingCommas = true,
                 NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = false,
+                //PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 ReadCommentHandling = JsonCommentHandling.Skip
             });
             if (config == null) throw new JsonException("格式化配置文件出现错误");
