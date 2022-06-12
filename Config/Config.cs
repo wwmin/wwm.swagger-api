@@ -22,7 +22,9 @@ public class Config
         // 2. 此为运行时所在的路径 (使用路径加载时仍无效) 
         //var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
         // 3. 程序进程所在目录
-        var currentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName);
+        //var currentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName);
+        // 4. 使用App上下文运行时基础路径
+        var currentDirectory = AppContext.BaseDirectory;
         if (string.IsNullOrEmpty(currentDirectory))
         {
             throw new ApplicationException("系统未获取到当前执行路径");
