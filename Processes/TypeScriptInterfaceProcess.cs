@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 using wwm.swagger_api.Models;
 
@@ -10,6 +11,12 @@ public static class TypeScriptInterfaceProcess
 {
 
     #region GenerateTypeString
+    /// <summary>
+    /// 从Json文档中生成类型
+    /// </summary>
+    /// <param name="jsonComponents"></param>
+    /// <param name="filePath"></param>
+    /// <param name="_config"></param>
     public static void GenerateTypeScriptTypesFromJsonModel(Components? jsonComponents, string filePath, Config _config)
     {
         StringBuilder sb = new StringBuilder();
@@ -49,7 +56,7 @@ public static class TypeScriptInterfaceProcess
     private static StringBuilder? GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model, string prefix_space_num)
     {
         if (model == null) return null;
-        //后缀是 _String _Int32 _Byte[] 等等的对象实体,内部是值类型,不需要定义接口
+        //后缀是 _String _Int32 _Byte[] 等等的对象实体,内部是值类型,不需要定义接口 
         var refValue = ProcessUtil.ParseValueTypeFromRef(tsTypeName);
         if (refValue.isValue)
         {
@@ -107,7 +114,13 @@ public static class TypeScriptInterfaceProcess
                             typeScriptInterface.AppendLine($"{prefix_space_num}{key}: {t},");
                         }
                     }
+                    else
+                    {
+                        allTypes.Add("any");
+                        typeScriptInterface.AppendLine($"{prefix_space_num}{key}: any,");
+                    }
                 }
+                if (allTypes.Count == 0) return typeScriptInterface.Clear();
                 //增加索引签名 例如:  [index:string]:string|number
                 var allTypeString = allTypes.Aggregate((x, y) => x + " | " + y);
                 if (isNullable)
@@ -174,7 +187,11 @@ public static class TypeScriptInterfaceProcess
     }
 
     #endregion
-
+    /// <summary>
+    /// 保存文件
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="str"></param>
     public static void SaveToFile(string filePath, string str)
     {
         var dirPath = Path.GetDirectoryName(filePath)!;

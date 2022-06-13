@@ -90,21 +90,16 @@ public class ConsoleApp
             Task generateInterfaceTask = Task.FromResult(() => 0);
             if (_config.ScriptType == Constants.ScriptType.TypeScript)
             {
-                generateInterfaceTask = Task.Run(() =>
-               {
-                   // 生成Interface文件
-                   string filePath = _config.OutPath + $"{_config.ApiInterfaceFolderName}/index.ts";
-                   TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath, _config);
-                   ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
-                   Console.WriteLine();
-
-               });
+                // 生成Interface文件
+                string filePath = _config.OutPath + $"{_config.ApiInterfaceFolderName}/index.ts";
+                TypeScriptInterfaceProcess.GenerateTypeScriptTypesFromJsonModel(swagger?.components, filePath, _config);
+                ConsoleUtil.WriteLine("接口文件路径: " + filePath, ConsoleColor.DarkRed);
+                Console.WriteLine();
             }
 
 
 
             //生成api.{name}.ts文件
-            Task generateApiTask = Task.Run(() =>
             {
                 string baseFile = _config.OutPath + $"{_config.ApiFolderName}/";
                 string interfacePre = "";
@@ -118,8 +113,7 @@ public class ConsoleApp
                 filePreText += $"{_config.ImportHttp}\n\n";
                 TypeScriptApiProcess.GenerateTypeScriptApiFromJsonModel(swagger, baseFile, filePreText, interfacePre, _config);
                 ConsoleUtil.WriteLine("接口Api文件夹: " + baseFile, ConsoleColor.DarkRed);
-            });
-            Task.WaitAll(generateInterfaceTask, generateApiTask);
+            }
             #endregion
             if (ArgsReadKey)
             {

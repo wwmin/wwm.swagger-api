@@ -181,7 +181,7 @@ public static class TypeScriptApiProcess
     }
 
     /// <summary>
-    /// 
+    /// 将请求参数转换成Api
     /// </summary>
     /// <param name="swaggerModel"></param>
     /// <param name="reqModel"></param>
@@ -355,7 +355,7 @@ public static class TypeScriptApiProcess
     #endregion
     #region 出参
     /// <summary>
-    /// 
+    /// 解析出餐类型
     /// </summary>
     /// <param name="requestName"></param>
     /// <param name="rs"></param>

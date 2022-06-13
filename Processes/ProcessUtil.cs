@@ -112,6 +112,10 @@ public static class ProcessUtil
         {
             return ("FormData", true);
         }
+        if (refString == "DataTable")
+        {
+            return ("any[][]", true);
+        }
         return (refString, false);
     }
     #endregion
