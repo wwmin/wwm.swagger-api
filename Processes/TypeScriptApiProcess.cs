@@ -12,7 +12,7 @@ public static class TypeScriptApiProcess
     public static void GenerateTypeScriptApiFromJsonModel(SwaggerModel? swaggerModel, string basePath, string filePreText, string interfacePre, Config _config)
     {
         if (swaggerModel == null) return;
-        bool isTs = _config.ScriptType == Constants.ScriptType.TypeScript;
+        bool isTs = _config.ScriptType == CONST.ScriptType.TypeScript;
         Dictionary<string, PathModel>? PathDic = swaggerModel.paths;
         if (PathDic == null) return;
         string prefix_space_num = _config.IndentSpaceNum > 0 ? Enumerable.Range(0, _config.IndentSpaceNum).Select(a => " ").Aggregate((x, y) => x + y) : "";//默认两个空格
@@ -235,7 +235,7 @@ public static class TypeScriptApiProcess
         var funcTailParameter = string.IsNullOrWhiteSpace(_config.FuncTailParameter) ? "" : _config.FuncTailParameter;
         var funcTailParameterNameList = ProcessUtil.ExtractParameterName(funcTailParameter);
         var funcTailParameterNameListString = funcTailParameterNameList.Count > 0 ? $", {string.Join(", ", funcTailParameterNameList)}" : "";
-        bool isTs = _config.ScriptType == Constants.ScriptType.TypeScript;
+        bool isTs = _config.ScriptType == CONST.ScriptType.TypeScript;
         if (hasRequestBody)
         {
             var refValue = ProcessUtil.ParseValueTypeFromRef(requestBody!);

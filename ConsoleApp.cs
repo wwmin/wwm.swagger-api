@@ -94,7 +94,7 @@ public class ConsoleApp
             jsondata = jsondata.Replace("$ref", "_ref");
             var swagger = JsonSerializer.Deserialize<SwaggerModel>(jsondata, jsonOptions);
             Task generateInterfaceTask = Task.FromResult(() => 0);
-            if (_config.ScriptType == Constants.ScriptType.TypeScript)
+            if (_config.ScriptType == CONST.ScriptType.TypeScript)
             {
                 // 生成Interface文件
                 string filePath = _config.OutPath + $"{_config.ApiInterfaceFolderName}/index.ts";
@@ -110,7 +110,7 @@ public class ConsoleApp
                 string baseFile = _config.OutPath + $"{_config.ApiFolderName}/";
                 string interfacePre = "";
                 string filePreText = "";
-                if (_config.ScriptType == Constants.ScriptType.TypeScript)
+                if (_config.ScriptType == CONST.ScriptType.TypeScript)
                 {
                     interfacePre = "IApi";
                     filePreText = $"import * as {interfacePre} from \"../{_config.ApiInterfaceFolderName}\";\n";

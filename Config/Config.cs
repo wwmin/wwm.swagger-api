@@ -77,11 +77,11 @@ public class Config
         config.ScriptType = config.ScriptType.ToLower();
         if (config.ScriptType == "js" || config.ScriptType == "javascript")
         {
-            config.ScriptType = Constants.ScriptType.JavaScript;
+            config.ScriptType = CONST.ScriptType.JavaScript;
         }
         else if (config.ScriptType == "ts" || config.ScriptType == "typescript")
         {
-            config.ScriptType = Constants.ScriptType.TypeScript;
+            config.ScriptType = CONST.ScriptType.TypeScript;
         }
         else
         {

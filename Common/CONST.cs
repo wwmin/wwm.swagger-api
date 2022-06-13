@@ -10,7 +10,7 @@ namespace wwm.swagger_api;
 /// <summary>
 /// 常量
 /// </summary>
-public static class Constants
+public static class CONST
 {
     /// <summary>
     /// 脚本类型
