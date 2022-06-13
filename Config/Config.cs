@@ -135,4 +135,8 @@ public class Config
     /// 空格缩进个数
     /// </summary>
     public int IndentSpaceNum { get; set; } = 2;
+    /// <summary>
+    /// 全局包装的字段
+    /// </summary>
+    public string RemoveUnifyWrapObjectName { get; set; } = string.Empty;
 }

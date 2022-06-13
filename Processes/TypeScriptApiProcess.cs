@@ -304,7 +304,7 @@ public static class TypeScriptApiProcess
         if (isTs)
         {
             // 处理出参
-            var responseType = ParseResponseType(swaggerModel, reqModel.responses, true);
+            var responseType = ParseResponseType(swaggerModel, reqModel.responses, _config.RemoveUnifyWrapObjectName);
 
             if (responseType.content != null && !responseType.content.StartsWith("any"))
             {
@@ -361,9 +361,9 @@ public static class TypeScriptApiProcess
     /// <param name="rs"></param>
     /// <param name="prefix_space_num"></param>
     /// <param name="summary"></param>
-    /// <param name="isRemoveWrapType">是否去掉统一包装类型, 默认去掉, 只去 返回类型中的data的类型</param>
+    /// <param name="removeUnifyWrapObjectName">是否去掉统一包装类型, 默认去掉, 返回类型中的data的类型</param>
     /// <returns></returns>
-    private static (string content, bool isValueType) ParseResponseType(SwaggerModel swaggerModel, Dictionary<string, ResponseModel> rs, bool isRemoveWrapType = true)
+    private static (string content, bool isValueType) ParseResponseType(SwaggerModel swaggerModel, Dictionary<string, ResponseModel> rs, string removeUnifyWrapObjectName = "")
     {
         if (rs == null) return ("any", false);
         var keys = rs.Keys;
@@ -385,7 +385,7 @@ public static class TypeScriptApiProcess
                     var refType = ProcessUtil.ParseRefType(value.content["application/json"].schema._ref);
                     if (refType != null)
                     {
-                        if (isRemoveWrapType)
+                        if (string.IsNullOrEmpty(removeUnifyWrapObjectName) == false)
                         {
                             // 去components.schemas 引用类型中去查找
                             var schemas = swaggerModel?.components?.schemas;
@@ -393,20 +393,24 @@ public static class TypeScriptApiProcess
                             var dataRef = schemas.Keys.Where(p => p == refType).FirstOrDefault();
                             if (dataRef == null) return ("any", false);
                             if (dataRef.EndsWith("_Object")) return ("object", true);
-                            if (schemas[dataRef].properties.TryGetValue("data", out var data))
+                            if (schemas[dataRef].properties.TryGetValue(removeUnifyWrapObjectName, out var data))
                             {
                                 if (data._ref == null && data.items == null)
                                 {
                                     return (data.type, true);
                                 }
-                                // 因 值 类型被系统包装成了对象类型, 实际返回值还是值类型, swagger或框架的bug?
+                                // 因 值 类型被系统包装成了对象类型, 实际返回值还是值类型, swagger或框架的bug? , 调用Value或value的值
                                 var subType = ProcessUtil.ParseRefType(data._ref);
                                 if (subType != null)
                                 {
                                     var refValue = ProcessUtil.ParseValueTypeFromRef(subType);
                                     if (refValue.isValue == false && refValue.content.StartsWith("ActionResult_"))
                                     {
-                                        if (schemas[refValue.content].properties.TryGetValue("value", out var subData))
+                                        PropertyModel? subData = null;
+                                        bool isGeted = schemas[refValue.content].properties.TryGetValue("value", out subData);
+                                        if (!isGeted) isGeted = schemas[refValue.content].properties.TryGetValue("Value", out subData);
+
+                                        if (isGeted && subData != null)
                                         {
                                             //系统过度包装了ActionResult类型
                                             var subSubType = ProcessUtil.ParseRefType(subData._ref);

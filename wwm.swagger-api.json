@@ -7,5 +7,6 @@
   "ApiFolderName": "api", // api文件夹名称, 可为空,默认:api
   "ApiInterfaceFolderName": "apiInterface", // api接口文件夹名称, 可为空,默认:apiInterface
   "ImportHttp": "import http from \"../index\";", // 导入http模块, 可为空,默认:import http from \"../index\";
-  "IndentSpaceNum": 2 // 缩进空格数, 可为空,默认:2
+  "IndentSpaceNum": 2, // 缩进空格数, 可为空,默认:2
+  "RemoveUnifyWrapObjectName": "Data" // 全局包装返回字段
 }
