@@ -9,6 +9,14 @@ namespace wwm.swagger_api.Processes;
 /// </summary>
 public static class TypeScriptApiProcess
 {
+    /// <summary>
+    /// 生成Api文件
+    /// </summary>
+    /// <param name="swaggerModel"></param>
+    /// <param name="basePath"></param>
+    /// <param name="filePreText"></param>
+    /// <param name="interfacePre"></param>
+    /// <param name="_config"></param>
     public static void GenerateTypeScriptApiFromJsonModel(SwaggerModel? swaggerModel, string basePath, string filePreText, string interfacePre, Config _config)
     {
         if (swaggerModel == null) return;
@@ -210,9 +218,11 @@ public static class TypeScriptApiProcess
         var reqBodyContent = reqModel.requestBody?.content;
 
         var requestBody = "";
+        // TODO: 全类别请求类型
         if (reqBodyContent != null && reqBodyContent.Count > 0)
         {
             var schema = reqBodyContent.Where(p => p.Key == "application/json").FirstOrDefault().Value?.schema;
+            //Debug.Assert(schema.type != "array");
             if (schema == null)
             {
                 // 尝试读取form-data
@@ -225,8 +235,9 @@ public static class TypeScriptApiProcess
             }
             else
             {
-                requestBody = schema?._ref == null ? schema?.type : schema?._ref;
+                requestBody = ProcessUtil.Convert(schema._ref ?? schema.items._ref, schema.type);
             }
+
         }
         // requestBody = CSharpTypeToTypeScriptType.ParseRefType(reqModel.requestBody?.content?["application/json"]?.schema?._ref);
         requestBody = ProcessUtil.ParseRefType(requestBody);
@@ -238,6 +249,7 @@ public static class TypeScriptApiProcess
         bool isTs = _config.ScriptType == CONST.ScriptType.TypeScript;
         if (hasRequestBody)
         {
+
             var refValue = ProcessUtil.ParseValueTypeFromRef(requestBody!);
             if (refValue.isValue)
             {
@@ -454,6 +466,8 @@ public static class TypeScriptApiProcess
         return ("any", false);
     }
     #endregion
+
+
     /// <summary>
     /// 将形如: /api/account/{id}/{name} 路径修改为: /api/account/$id/$name
     /// </summary>

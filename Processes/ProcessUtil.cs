@@ -15,7 +15,7 @@ public static class ProcessUtil
     {
         if (csharpType == null)
         {
-            return "any";
+            return ParseRefType(refString) ?? "any";
         }
         else if (csharpType == "string")
         {
@@ -115,6 +115,10 @@ public static class ProcessUtil
         if (refString == "DataTable")
         {
             return ("any[][]", true);
+        }
+        if (refString == "array")
+        {
+            return ("any[]", true);
         }
         return (refString, false);
     }

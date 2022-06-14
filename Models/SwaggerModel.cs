@@ -98,9 +98,18 @@ public class ReferenceObject
     public string? type { get; set; }
     public string? format { get; set; }
     /// <summary>
+    /// 当type == array
+    /// </summary>
+    public SchemaItem items { get; set; }
+    /// <summary>
     /// 当 type == object
     /// </summary>
     public Dictionary<string, PropertyTypeFormat>? properties { get; set; }
+}
+
+public class SchemaItem
+{
+    public string _ref { get; set; }
 }
 
 /// <summary>
@@ -110,6 +119,8 @@ public class PropertyTypeFormat
 {
     public string type { get; set; }
     public string format { get; set; }
+
+    public PropertyTypeFormat items { get; set; }
 }
 
 
