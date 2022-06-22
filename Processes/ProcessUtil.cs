@@ -11,7 +11,7 @@ public static class ProcessUtil
     /// </summary>
     /// <param name="csharpType"></param>
     /// <returns></returns>
-    public static string Convert(string? refString, string csharpType)
+    public static string Convert(string? refString, string? csharpType)
     {
         if (csharpType == null)
         {

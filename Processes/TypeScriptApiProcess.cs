@@ -301,14 +301,7 @@ public static class TypeScriptApiProcess
         if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
         {
             var pathKeys = string.Join(" , ", parameters.inPathKeys);
-            if (hasRequestBody)
-            {
-                sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = requestParams;");
-            }
-            else
-            {
-                sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = params;");
-            }
+            sb.AppendLine($"{prefix_space_num}let {{ {pathKeys} }} = params;");
         }
 
         var realUrlPath = UrlPathToES6ParamsPath(path);
@@ -394,7 +387,9 @@ public static class TypeScriptApiProcess
                 // 此处取json的返回值
                 if (value.content != null && value.content["application/json"] != null)
                 {
-                    var refType = ProcessUtil.ParseRefType(value.content["application/json"].schema._ref);
+                    //var refType = ProcessUtil.ParseRefType(value.content["application/json"].schema._ref);
+                    var p = value.content["application/json"];
+                    var refType = ProcessUtil.Convert(p.schema._ref ?? p.schema.items?._ref, p.schema.type);
                     if (refType != null)
                     {
                         if (string.IsNullOrEmpty(removeUnifyWrapObjectName) == false)
