@@ -156,6 +156,7 @@ public static class TypeScriptApiProcess
         if (!string.IsNullOrEmpty(summary)) sb.AppendLine($"/** {summary} - 请求参数 */");
         var name = requestName + "Params";
         sb.AppendLine($"export interface {name} {{");
+        Debug.Assert(name != "BatchDeleteDataParams");
         List<string>? inPathList = null;
         var allTypes = new HashSet<string>();
         bool isNullable = false;
