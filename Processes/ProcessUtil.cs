@@ -76,18 +76,6 @@ public static class ProcessUtil
     /// <returns></returns>
     public static (string content, bool isValue) ParseValueTypeFromRef(string refString)
     {
-        if (refString.EndsWith("_String") || refString.EndsWith("_Byte[]"))
-        {
-            return ("string", true);
-        }
-        if (refString.EndsWith("_Int32") || refString.EndsWith("_Double") || refString.EndsWith("_Long") || refString.EndsWith("_Floa") || refString.EndsWith("_Decimal"))
-        {
-            return ("number", true);
-        }
-        if (refString.EndsWith("_Boolean"))
-        {
-            return ("boolean", true);
-        }
         if (refString == "FormData")
         {
             return ("FormData", true);
@@ -99,6 +87,22 @@ public static class ProcessUtil
         if (refString == "array")
         {
             return ("any[]", true);
+        }
+        if (refString.EndsWith("_String") || refString.EndsWith("_Byte[]"))
+        {
+            return ("string", true);
+        }
+        if (refString.EndsWith("_Boolean"))
+        {
+            return ("boolean", true);
+        }
+        if (refString.EndsWith("_Int32") || refString.EndsWith("_Double") || refString.EndsWith("_Long") || refString.EndsWith("_Float") || refString.EndsWith("_Decimal"))
+        {
+            return ("number", true);
+        }
+        if (refString.EndsWith("_Int32[]") || refString.EndsWith("_Double[]") || refString.EndsWith("_Long[]") || refString.EndsWith("_Float[]") || refString.EndsWith("_Decimal[]"))
+        {
+            return ("number[]", true);
         }
         return (refString, false);
     }
