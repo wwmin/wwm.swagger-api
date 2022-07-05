@@ -35,6 +35,8 @@ public class PathModel
     public HttpRequestModel put { get; set; }
     public HttpRequestModel delete { get; set; }
 
+    public HttpRequestModel head { get; set; }
+
     public HttpRequestModel? this[string index]
     {
         get

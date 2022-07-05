@@ -33,8 +33,7 @@ public static class TypeScriptApiProcess
         {
 
             var value = PathDic[key];
-
-            var tag = (value.get ?? value.post ?? value.put ?? value.delete).tags?.FirstOrDefault() ?? "common";
+            var tag = (value.get ?? value.post ?? value.put ?? value.delete ?? value.head).tags?.FirstOrDefault() ?? "common";
             var fileName = basePath + filePrefix + tag + filePost;
             bool hasTagFile = pathStatistic.ContainsKey(tag);
             if (hasTagFile == false)
@@ -66,6 +65,11 @@ public static class TypeScriptApiProcess
             {
                 reqModel = value.delete;
                 methods.Add(nameof(value.delete));
+            }
+            if (value.head != null)
+            {
+                reqModel = value.head;
+                methods.Add(nameof(value.head));
             }
             if (methods.Count == 0)
             {
