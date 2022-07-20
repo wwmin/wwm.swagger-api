@@ -37,7 +37,7 @@ public static class TypeScriptInterfaceProcess
             }
             else
             {
-                var typeScriptType = GenerateSchemasTypeScriptInterface(key, value, prefix_space_num);
+                var typeScriptType = GenerateSchemasTypeScriptInterface(key, value, prefix_space_num, jsonComponents);
                 sb.Append(typeScriptType);
             }
             ConsoleUtil.WriteLine("生成接口: " + key, ConsoleColor.DarkCyan);
@@ -53,7 +53,7 @@ public static class TypeScriptInterfaceProcess
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    private static StringBuilder? GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model, string prefix_space_num)
+    private static StringBuilder? GenerateSchemasTypeScriptInterface(string tsTypeName, SchemasModel model, string prefix_space_num, Components jsonComponents)
     {
         if (model == null) return null;
         //后缀是 _String _Int32 _Byte[] 等等的对象实体,内部是值类型,不需要定义接口 
@@ -88,6 +88,32 @@ public static class TypeScriptInterfaceProcess
                             typeScriptInterface.AppendLine($"{prefix_space_num}/** {value.description}");
                             typeScriptInterface.AppendLine($"{prefix_space_num}* {value.@default}");
                             typeScriptInterface.AppendLine($"{prefix_space_num}*/");
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(value._ref))
+                    {
+                        // 存在引用,使用引用注释
+                        // 类似于
+                        // // 用户信息
+                        // public UserInfo User{get;set;}
+                        // 属性是引用类型时,swagger.json 只保留了$ref值, 将description忽略了(swagger标准bug?)
+                        var refName = ProcessUtil.ParseRefType(value._ref);
+                        if (refName != null)
+                        {
+                            var schema = jsonComponents.schemas[refName];
+                            if (schema != null && string.IsNullOrWhiteSpace(schema.description) == false)
+                            {
+                                if (schema.description.Contains("<br />"))
+                                {
+                                    var schemaDescriptionList = schema.description.Split(new string[] { "<br />&nbsp;", "<br />" }, StringSplitOptions.RemoveEmptyEntries);
+                                    var schemaDescription = string.Join("\r\n" + prefix_space_num + prefix_space_num, schemaDescriptionList);
+                                    typeScriptInterface.AppendLine($"{prefix_space_num}/** {schemaDescription} */");
+                                }
+                                else
+                                {
+                                    typeScriptInterface.AppendLine($"{prefix_space_num}/** {schema.description} */");
+                                }
+                            }
                         }
                     }
                     // key : type
