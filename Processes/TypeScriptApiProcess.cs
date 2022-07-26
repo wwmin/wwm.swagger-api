@@ -251,6 +251,13 @@ public static class TypeScriptApiProcess
         var funcTailParameterNameList = ProcessUtil.ExtractParameterName(funcTailParameter);
         var funcTailParameterNameListString = funcTailParameterNameList.Count > 0 ? $", {string.Join(", ", funcTailParameterNameList)}" : "";
         bool isTs = _config.ScriptType == CONST.ScriptType.TypeScript;
+        string? funcTailString = null;
+        Func<bool, string> hasParameterString = (bool hasPreString) =>
+        {
+            if (funcTailString != null) return funcTailString;
+            funcTailString = hasPreString ? (string.IsNullOrEmpty(funcTailParameter) ? "" : ", " + funcTailParameter) : funcTailParameter;
+            return funcTailString;
+        };
         if (hasRequestBody)
         {
 
@@ -267,22 +274,22 @@ public static class TypeScriptApiProcess
             {
                 if (isTs)
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}{hasParameterString(true)}) => {{");
                 }
                 else
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, body, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, body{hasParameterString(true)}) => {{");
                 }
             }
             else
             {
                 if (isTs)
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}{hasParameterString(true)}) => {{");
                 }
                 else
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body{hasParameterString(true)}) => {{");
 
                 }
             }
@@ -291,16 +298,16 @@ public static class TypeScriptApiProcess
         {
             if (isTs)
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}, {funcTailParameter}) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}{hasParameterString(true)}) => {{");
             }
             else
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, {funcTailParameter}) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params{hasParameterString(true)}) => {{");
             }
         }
         else
         {
-            sb.AppendLine($"export const {requestUrlPathName + methodPost} = ({funcTailParameter}) => {{");
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = ({hasParameterString(false)}) => {{");
         }
         if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
         {
