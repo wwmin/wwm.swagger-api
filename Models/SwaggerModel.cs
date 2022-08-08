@@ -37,6 +37,10 @@ public class PathModel
 
     public HttpRequestModel head { get; set; }
 
+    public HttpRequestModel options { get; set; }
+    public HttpRequestModel patch { get; set; }
+    public HttpRequestModel trace { get; set; }
+
     public HttpRequestModel? this[string index]
     {
         get
@@ -47,6 +51,10 @@ public class PathModel
                 "get" => get,
                 "put" => put,
                 "delete" => delete,
+                "head" => head,
+                "options" => options,
+                "patch" => patch,
+                "trace" => trace,
                 _ => null
             };
         }
@@ -196,7 +204,7 @@ public class PropertyModel
     public string format { get; set; }
     public bool nullable { get; set; }
 
-    public Array @enum { get; set; }
+    public List<string> @enum { get; set; }
 
     public object @default { get; set; }
 }

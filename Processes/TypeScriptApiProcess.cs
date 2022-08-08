@@ -1,7 +1,6 @@
-﻿using wwm.swagger_api.Models;
+﻿using System.Text;
 
-using System.Text;
-using System.Diagnostics;
+using wwm.swagger_api.Models;
 
 namespace wwm.swagger_api.Processes;
 /// <summary>
@@ -31,7 +30,7 @@ public static class TypeScriptApiProcess
         Dictionary<string, bool> pathStatistic = new Dictionary<string, bool>();
         foreach (var key in keys)
         {
-
+            Dictionary<string, bool> existParamDic = new Dictionary<string, bool>();
             var value = PathDic[key];
             var tag = (value.get ?? value.post ?? value.put ?? value.delete ?? value.head).tags?.FirstOrDefault() ?? "common";
             var fileName = basePath + filePrefix + tag + filePost;
@@ -96,7 +95,11 @@ public static class TypeScriptApiProcess
                 var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, methods.FirstOrDefault()!, interfacePre, prefix_space_num);
                 if (isTs)
                 {
-                    if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                    var notExistParam = existParamDic.TryAdd(tag + ":" + apiValue.interfaceName, true);
+                    if (notExistParam)
+                    {
+                        if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                    }
                 }
                 SaveFile(fileName, apiValue.content, true);
             }
@@ -113,7 +116,11 @@ public static class TypeScriptApiProcess
                     var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, method, interfacePre, prefix_space_num, "_" + method.ToUpperFirst());
                     if (isTs)
                     {
-                        if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                        var notExistParam = existParamDic.TryAdd(tag + ":" + apiValue.interfaceName, true);
+                        if (notExistParam)
+                        {
+                            if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                        }
                     }
                     SaveFile(fileName, apiValue.content, true);
                 }
@@ -204,7 +211,7 @@ public static class TypeScriptApiProcess
     /// <param name="prefix_space_num"></param>
     /// <param name="methodPost">可为空,当不为空时,将在导出函数后缀添加 该变量值</param>
     /// <returns></returns>
-    private static (string content, string interfaceText) ConvertReqModelToApi(Config _config, SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
+    private static (string content, string interfaceText, string interfaceName) ConvertReqModelToApi(Config _config, SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
     {
         StringBuilder sb = new StringBuilder();
         //使用单个对象形式输出
@@ -212,7 +219,6 @@ public static class TypeScriptApiProcess
         // 处理入参, get/delete 默认只有queryParams , post/put默认首先有requestBody和parameters
         // 处理parameters参数
         var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, prefix_space_num, reqModel.summary);
-
         //if (!string.IsNullOrEmpty(parameters.content))
         //{
         //    SaveFile(fileName, parameters.content, true);
@@ -366,7 +372,7 @@ public static class TypeScriptApiProcess
             }
         }
         sb.AppendLine($"}}\n\n");
-        return (sb.ToString(), parameters.content);
+        return (sb.ToString(), parameters.content, parameters.paramInterfaceName);
     }
     #endregion
     #region 出参
