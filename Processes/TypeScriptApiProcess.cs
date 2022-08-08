@@ -332,6 +332,7 @@ public static class TypeScriptApiProcess
             {
                 if (!responseType.isValueType)
                 {
+                    responseType.content = StringUtil.ReplceSpecialStr(CONST.SpecialSymbols, responseType.content);
                     responseType.content = interfacePre + "." + responseType.content;
                 }
             }

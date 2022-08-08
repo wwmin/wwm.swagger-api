@@ -30,17 +30,19 @@ public static class TypeScriptInterfaceProcess
         foreach (var key in jsonComponents.schemas.Keys)
         {
             var value = jsonComponents.schemas[key];
+            // 将key处理掉特殊字符
+            string keyDeal = StringUtil.ReplceSpecialStr(CONST.SpecialSymbols, key);
             if (value.@enum != null)
             {
-                var typeScriptEnum = GenerateScheasTypeScriptEnum(key, value, prefix_space_num);
+                var typeScriptEnum = GenerateScheasTypeScriptEnum(keyDeal, value, prefix_space_num);
                 sb.Append(typeScriptEnum);
             }
             else
             {
-                var typeScriptType = GenerateSchemasTypeScriptInterface(key, value, prefix_space_num, jsonComponents);
+                var typeScriptType = GenerateSchemasTypeScriptInterface(keyDeal, value, prefix_space_num, jsonComponents);
                 sb.Append(typeScriptType);
             }
-            ConsoleUtil.WriteLine("生成接口: " + key, ConsoleColor.DarkCyan);
+            ConsoleUtil.WriteLine("生成接口: " + keyDeal, ConsoleColor.DarkCyan);
         }
         //TODO: 
         //var securitySchemes = jsonComponents.securitySchemes;
