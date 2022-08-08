@@ -396,11 +396,17 @@ public static class TypeScriptApiProcess
             if (key == "200")
             {
                 // 此处取json的返回值
-                if (value.content != null && value.content["application/json"] != null)
+                // 如果没有json则尝试使用*/*获取
+
+                JsonSchema jsonSchema;
+                var json1 = value.content.TryGetValue("application/json", out jsonSchema);
+                if (json1 == false || jsonSchema == null)
                 {
-                    //var refType = ProcessUtil.ParseRefType(value.content["application/json"].schema._ref);
-                    var p = value.content["application/json"];
-                    var refType = ProcessUtil.Convert(p.schema._ref ?? p.schema.items?._ref, p.schema.type);
+                    json1 = value.content.TryGetValue("*/*", out jsonSchema);
+                }
+                if (json1 && jsonSchema != null)
+                {
+                    var refType = ProcessUtil.Convert(jsonSchema.schema._ref ?? jsonSchema.schema.items?._ref, jsonSchema.schema.type);
                     if (refType != null)
                     {
                         if (string.IsNullOrEmpty(removeUnifyWrapObjectName) == false)
@@ -465,7 +471,7 @@ public static class TypeScriptApiProcess
                     {
                         return ("any", false);
                     }
-                }
+                };
             }
 
         }
