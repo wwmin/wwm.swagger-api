@@ -88,11 +88,11 @@ public static class ProcessUtil
         {
             return ("any[]", true);
         }
-        if (refString.EndsWith("_String") || refString.EndsWith("_Byte[]"))
+        if (refString.EndsWith("_String") || refString.EndsWith("_Byte[]") || refString.Equals("string"))
         {
             return ("string", true);
         }
-        if (refString.EndsWith("_Boolean"))
+        if (refString.EndsWith("_Boolean") || refString.Equals("boolean"))
         {
             return ("boolean", true);
         }

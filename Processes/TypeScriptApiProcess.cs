@@ -471,14 +471,15 @@ public static class TypeScriptApiProcess
                         }
                         else
                         {
-                            return (refType, false);
+                            var refValue = ProcessUtil.ParseValueTypeFromRef(refType);
+                            return (refValue.content, refValue.isValue);
                         }
                     }
                     else
                     {
                         return ("any", false);
                     }
-                };
+                }
             }
 
         }
