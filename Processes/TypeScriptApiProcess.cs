@@ -400,16 +400,16 @@ public static class TypeScriptApiProcess
         {
             var key = keys.ElementAt(i);
             var value = rs[key];
-            if (key == "200")
+            if (key == "200" && value != null && value.content != null)
             {
                 // 此处取json的返回值
                 // 如果没有json则尝试使用*/*获取
 
                 JsonSchema jsonSchema;
-                var json1 = value.content.TryGetValue("application/json", out jsonSchema);
+                var json1 = value.content.TryGetValue("application/json", out jsonSchema!);
                 if (json1 == false || jsonSchema == null)
                 {
-                    json1 = value.content.TryGetValue("*/*", out jsonSchema);
+                    json1 = value.content.TryGetValue("*/*", out jsonSchema!);
                 }
                 if (json1 && jsonSchema != null)
                 {
