@@ -1,4 +1,6 @@
-﻿namespace wwm.swagger_api.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace wwm.swagger_api.Models;
 
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
 public class SwaggerModel
@@ -93,6 +95,7 @@ public class JsonSchema
 /// </summary>
 public class ReferenceObject
 {
+    [JsonPropertyName("$ref")]
     public string _ref { get; set; }
 
     public string? type { get; set; }
@@ -109,6 +112,7 @@ public class ReferenceObject
 
 public class SchemaItem
 {
+    [JsonPropertyName("$ref")]
     public string _ref { get; set; }
 }
 
@@ -178,6 +182,7 @@ public class PropertyModel
     /// 引用类型, 原key为 "$ref" 因无法使用$开头的定义字段故在此初转义到_ref
     /// 如果存在此值,说明只有该引用类型字段
     /// </summary>
+    [JsonPropertyName("$ref")]
     public string _ref { get; set; }
     public int minLength { get; set; }
     public int maxLength { get; set; }

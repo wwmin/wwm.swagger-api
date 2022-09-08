@@ -91,7 +91,7 @@ public class ConsoleApp
             #region 处理json
 
             //$ref=>@ref
-            jsondata = jsondata.Replace("$ref", "_ref");
+            //jsondata = jsondata.Replace("$ref", "_ref");
             var swagger = JsonSerializer.Deserialize<SwaggerModel>(jsondata, jsonOptions);
             Task generateInterfaceTask = Task.FromResult(() => 0);
             if (_config.ScriptType == CONST.ScriptType.TypeScript)
