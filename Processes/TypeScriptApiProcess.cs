@@ -1,7 +1,6 @@
-﻿using wwm.swagger_api.Models;
+﻿using System.Text;
 
-using System.Text;
-using System.Diagnostics;
+using wwm.swagger_api.Models;
 
 namespace wwm.swagger_api.Processes;
 /// <summary>
@@ -31,10 +30,9 @@ public static class TypeScriptApiProcess
         Dictionary<string, bool> pathStatistic = new Dictionary<string, bool>();
         foreach (var key in keys)
         {
-
+            Dictionary<string, bool> existParamDic = new Dictionary<string, bool>();
             var value = PathDic[key];
-
-            var tag = (value.get ?? value.post ?? value.put ?? value.delete).tags?.FirstOrDefault() ?? "common";
+            var tag = (value.get ?? value.post ?? value.put ?? value.delete ?? value.head).tags?.FirstOrDefault() ?? "common";
             var fileName = basePath + filePrefix + tag + filePost;
             bool hasTagFile = pathStatistic.ContainsKey(tag);
             if (hasTagFile == false)
@@ -67,6 +65,11 @@ public static class TypeScriptApiProcess
                 reqModel = value.delete;
                 methods.Add(nameof(value.delete));
             }
+            if (value.head != null)
+            {
+                reqModel = value.head;
+                methods.Add(nameof(value.head));
+            }
             if (methods.Count == 0)
             {
                 continue;
@@ -92,7 +95,11 @@ public static class TypeScriptApiProcess
                 var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, methods.FirstOrDefault()!, interfacePre, prefix_space_num);
                 if (isTs)
                 {
-                    if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                    var notExistParam = existParamDic.TryAdd(tag + ":" + apiValue.interfaceName, true);
+                    if (notExistParam)
+                    {
+                        if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                    }
                 }
                 SaveFile(fileName, apiValue.content, true);
             }
@@ -109,7 +116,11 @@ public static class TypeScriptApiProcess
                     var apiValue = ConvertReqModelToApi(_config, swaggerModel, reqModel, key, requestUrlPathName, method, interfacePre, prefix_space_num, "_" + method.ToUpperFirst());
                     if (isTs)
                     {
-                        if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                        var notExistParam = existParamDic.TryAdd(tag + ":" + apiValue.interfaceName, true);
+                        if (notExistParam)
+                        {
+                            if (!string.IsNullOrEmpty(apiValue.interfaceText)) SaveFile(fileName, apiValue.interfaceText, true);
+                        }
                     }
                     SaveFile(fileName, apiValue.content, true);
                 }
@@ -200,7 +211,7 @@ public static class TypeScriptApiProcess
     /// <param name="prefix_space_num"></param>
     /// <param name="methodPost">可为空,当不为空时,将在导出函数后缀添加 该变量值</param>
     /// <returns></returns>
-    private static (string content, string interfaceText) ConvertReqModelToApi(Config _config, SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
+    private static (string content, string interfaceText, string interfaceName) ConvertReqModelToApi(Config _config, SwaggerModel swaggerModel, HttpRequestModel reqModel, string path, string requestUrlPathName, string methodName, string interfacePre, string prefix_space_num, string? methodPost = "")
     {
         StringBuilder sb = new StringBuilder();
         //使用单个对象形式输出
@@ -208,7 +219,6 @@ public static class TypeScriptApiProcess
         // 处理入参, get/delete 默认只有queryParams , post/put默认首先有requestBody和parameters
         // 处理parameters参数
         var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, prefix_space_num, reqModel.summary);
-
         //if (!string.IsNullOrEmpty(parameters.content))
         //{
         //    SaveFile(fileName, parameters.content, true);
@@ -247,6 +257,13 @@ public static class TypeScriptApiProcess
         var funcTailParameterNameList = ProcessUtil.ExtractParameterName(funcTailParameter);
         var funcTailParameterNameListString = funcTailParameterNameList.Count > 0 ? $", {string.Join(", ", funcTailParameterNameList)}" : "";
         bool isTs = _config.ScriptType == CONST.ScriptType.TypeScript;
+        string? funcTailString = null;
+        Func<bool, string> hasParameterString = (bool hasPreString) =>
+        {
+            if (funcTailString != null) return funcTailString;
+            funcTailString = hasPreString ? (string.IsNullOrEmpty(funcTailParameter) ? "" : ", " + funcTailParameter) : funcTailParameter;
+            return funcTailString;
+        };
         if (hasRequestBody)
         {
 
@@ -263,22 +280,22 @@ public static class TypeScriptApiProcess
             {
                 if (isTs)
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType} , body: {requestBody}{hasParameterString(true)}) => {{");
                 }
                 else
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, body, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, body{hasParameterString(true)}) => {{");
                 }
             }
             else
             {
                 if (isTs)
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body: {requestBody}{hasParameterString(true)}) => {{");
                 }
                 else
                 {
-                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body, {funcTailParameter}) => {{");
+                    sb.AppendLine($"export const {requestUrlPathName + methodPost} = (body{hasParameterString(true)}) => {{");
 
                 }
             }
@@ -287,16 +304,16 @@ public static class TypeScriptApiProcess
         {
             if (isTs)
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}, {funcTailParameter}) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params: {paramType}{hasParameterString(true)}) => {{");
             }
             else
             {
-                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params, {funcTailParameter}) => {{");
+                sb.AppendLine($"export const {requestUrlPathName + methodPost} = (params{hasParameterString(true)}) => {{");
             }
         }
         else
         {
-            sb.AppendLine($"export const {requestUrlPathName + methodPost} = ({funcTailParameter}) => {{");
+            sb.AppendLine($"export const {requestUrlPathName + methodPost} = ({hasParameterString(false)}) => {{");
         }
         if (parameters.inPathKeys != null && parameters.inPathKeys.Count > 0)
         {
@@ -315,6 +332,7 @@ public static class TypeScriptApiProcess
             {
                 if (!responseType.isValueType)
                 {
+                    responseType.content = StringUtil.ReplceSpecialStr(CONST.SpecialSymbols, responseType.content);
                     responseType.content = interfacePre + "." + responseType.content;
                 }
             }
@@ -355,7 +373,7 @@ public static class TypeScriptApiProcess
             }
         }
         sb.AppendLine($"}}\n\n");
-        return (sb.ToString(), parameters.content);
+        return (sb.ToString(), parameters.content, parameters.paramInterfaceName);
     }
     #endregion
     #region 出参
@@ -382,14 +400,20 @@ public static class TypeScriptApiProcess
         {
             var key = keys.ElementAt(i);
             var value = rs[key];
-            if (key == "200")
+            if (key == "200" && value != null && value.content != null)
             {
                 // 此处取json的返回值
-                if (value.content != null && value.content["application/json"] != null)
+                // 如果没有json则尝试使用*/*获取
+
+                JsonSchema jsonSchema;
+                var json1 = value.content.TryGetValue("application/json", out jsonSchema!);
+                if (json1 == false || jsonSchema == null)
                 {
-                    //var refType = ProcessUtil.ParseRefType(value.content["application/json"].schema._ref);
-                    var p = value.content["application/json"];
-                    var refType = ProcessUtil.Convert(p.schema._ref ?? p.schema.items?._ref, p.schema.type);
+                    json1 = value.content.TryGetValue("*/*", out jsonSchema!);
+                }
+                if (json1 && jsonSchema != null)
+                {
+                    var refType = ProcessUtil.Convert(jsonSchema.schema._ref ?? jsonSchema.schema.items?._ref, jsonSchema.schema.type);
                     if (refType != null)
                     {
                         if (string.IsNullOrEmpty(removeUnifyWrapObjectName) == false)
@@ -447,7 +471,8 @@ public static class TypeScriptApiProcess
                         }
                         else
                         {
-                            return (refType, false);
+                            var refValue = ProcessUtil.ParseValueTypeFromRef(refType);
+                            return (refValue.content, refValue.isValue);
                         }
                     }
                     else

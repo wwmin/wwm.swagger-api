@@ -26,6 +26,11 @@ public static class CONST
         /// </summary>
         public static string TypeScript = "TypeScript";
     }
+
+    /// <summary>
+    /// 字符串特殊字符
+    /// </summary>
+    public static List<string> SpecialSymbols = new List<string> { "«", "»" };
 }
 
 /// <summary>

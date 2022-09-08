@@ -1,12 +1,12 @@
 ﻿{
   "ScriptType": "ts", // js 或 ts
-  "OutPath": "D:\\work\\bionic\\web\\src\\api\\", // 输出路径, 可为相对路径和绝对路径, 不可为空
-  "JsonUrl": "http://localhost:5000/swagger/Default/swagger.json", // 读取swagger json的路径,可为url也为本地路径, 不可为空
+  "OutPath": "D:\\work\\bionic\\web\\src\\api", // 输出路径, 可为相对路径和绝对路径, 不可为空
+  "JsonUrl": "http://localhost:5000/swagger/Default/swagger.json", // 读取swagger json的路径,可为url, 也可为本地路径, 不可为空
   "FileHeadText": "/**\n * 由 wwm.swagger-api 工具自动生成\n */", // 自定义文件头信息, 可为空
   "FuncTailParameter": "loading: boolean = true", // 函数尾部参数, 可为空
   "ApiFolderName": "api", // api文件夹名称, 可为空,默认:api
   "ApiInterfaceFolderName": "apiInterface", // api接口文件夹名称, 可为空,默认:apiInterface
   "ImportHttp": "import http from \"../index\";", // 导入http模块, 可为空,默认:import http from \"../index\";
   "IndentSpaceNum": 2, // 缩进空格数, 可为空,默认:2
-  "RemoveUnifyWrapObjectName": "Data" // 全局包装返回字段
+  "RemoveUnifyWrapObjectName": "Data" // 去除全局包装返回字段，为空则使用全字段类型返回
 }

@@ -24,4 +24,21 @@ public static class StringUtil
     /// <param name="urlStr"></param>
     /// <returns></returns>
     public static bool IsUrl(string urlStr) => Regex.IsMatch(urlStr, @"^((https?)(:))?(\/\/)(\w*|\d*)");
+
+    /// <summary>
+    /// 去除特殊字符
+    /// </summary>
+    /// <param name="specialSymbols"></param>
+    /// <param name="words"></param>
+    /// <returns></returns>
+    public static string ReplceSpecialStr(List<string> specialSymbols, string words)
+    {
+        if (specialSymbols == null || specialSymbols.Count == 0) return words;
+        var res = words;
+        specialSymbols.ForEach(s =>
+        {
+            res = res.Replace(s, "");
+        });
+        return res;
+    }
 }

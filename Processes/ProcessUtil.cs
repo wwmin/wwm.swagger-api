@@ -13,63 +13,43 @@ public static class ProcessUtil
     /// <returns></returns>
     public static string Convert(string? refString, string? csharpType)
     {
-        if (csharpType == null)
+        switch (csharpType)
         {
-            return ParseRefType(refString) ?? "any";
-        }
-        else if (csharpType == "string")
-        {
-            return "string";
-        }
-        else if (csharpType == "int")
-        {
-            return "number";
-        }
-        else if (csharpType == "integer")
-        {
-            return "number";
-        }
-        else if (csharpType == "long")
-        {
-            return "number";
-        }
-        else if (csharpType == "float")
-        {
-            return "number";
-        }
-        else if (csharpType == "double")
-        {
-            return "number";
-        }
-        else if (csharpType == "bool" || csharpType == "boolean")
-        {
-            return "boolean";
-        }
-        else if (csharpType == "DateTime")
-        {
-            return "Date";
-        }
-        else if (csharpType == "DateTimeOffset")
-        {
-            return "Date";
-        }
-        else if (csharpType == "byte[]")
-        {
-            return "string";
-        }
-        else if (csharpType == "object")
-        {
-            var t = ParseRefType(refString);
-            return t ?? "any";
-        }
-        else if (csharpType == "array")
-        {
-            var t = ParseRefType(refString);
-            return t == null ? "any[]" : t + "[]";
-        }
-        else
-        {
-            return csharpType;
+            case null:
+                return ParseRefType(refString) ?? "any";
+            case "string":
+                return "string";
+            case "int":
+                return "number";
+            case "integer":
+                return "number";
+            case "long":
+                return "number";
+            case "float":
+                return "number";
+            case "double":
+                return "number";
+            case "bool":
+            case "boolean":
+                return "boolean";
+            case "DateTime":
+                return "Date";
+            case "DateTimeOffset":
+                return "Date";
+            case "byte[]":
+                return "string";
+            case "object":
+                {
+                    var t = Convert(null, ParseRefType(refString));
+                    return t ?? "any";
+                }
+            case "array":
+                {
+                    var t = Convert(null, ParseRefType(refString));
+                    return t == null ? "any[]" : t + "[]";
+                }
+            default:
+                return csharpType;
         }
     }
 
@@ -96,18 +76,6 @@ public static class ProcessUtil
     /// <returns></returns>
     public static (string content, bool isValue) ParseValueTypeFromRef(string refString)
     {
-        if (refString.EndsWith("_String") || refString.EndsWith("_Byte[]"))
-        {
-            return ("string", true);
-        }
-        if (refString.EndsWith("_Int32") || refString.EndsWith("_Double") || refString.EndsWith("_Long") || refString.EndsWith("_Floa") || refString.EndsWith("_Decimal"))
-        {
-            return ("number", true);
-        }
-        if (refString.EndsWith("_Boolean"))
-        {
-            return ("boolean", true);
-        }
         if (refString == "FormData")
         {
             return ("FormData", true);
@@ -119,6 +87,22 @@ public static class ProcessUtil
         if (refString == "array")
         {
             return ("any[]", true);
+        }
+        if (refString.EndsWith("_String") || refString.EndsWith("_Byte[]") || refString.Equals("string"))
+        {
+            return ("string", true);
+        }
+        if (refString.EndsWith("_Boolean") || refString.Equals("boolean"))
+        {
+            return ("boolean", true);
+        }
+        if (refString.EndsWith("_Int32") || refString.EndsWith("_Double") || refString.EndsWith("_Long") || refString.EndsWith("_Float") || refString.EndsWith("_Decimal"))
+        {
+            return ("number", true);
+        }
+        if (refString.EndsWith("_Int32[]") || refString.EndsWith("_Double[]") || refString.EndsWith("_Long[]") || refString.EndsWith("_Float[]") || refString.EndsWith("_Decimal[]"))
+        {
+            return ("number[]", true);
         }
         return (refString, false);
     }
