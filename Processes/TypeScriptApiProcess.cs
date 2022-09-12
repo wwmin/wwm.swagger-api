@@ -23,7 +23,7 @@ public static class TypeScriptApiProcess
         Dictionary<string, PathModel>? PathDic = swaggerModel.paths;
         if (PathDic == null) return;
         string prefix_space_num = _config.IndentSpaceNum > 0 ? Enumerable.Range(0, _config.IndentSpaceNum).Select(a => " ").Aggregate((x, y) => x + y) : "";//默认两个空格
-        RemoveFileIfExist(basePath);
+        //RemoveFileIfExist(basePath);
         string filePrefix = "api.";
         string filePost = isTs ? ".ts" : ".js";
         var keys = PathDic.Keys;
