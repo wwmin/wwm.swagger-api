@@ -171,11 +171,10 @@ public static class TypeScriptInterfaceProcess
     /// <returns></returns>
     private static string GenerateScheasTypeScriptEnum(string tsTypeName, SchemasModel model, string prefix_space_num)
     {
-        if (model == null || string.IsNullOrEmpty(model.description)) return "";
-        // string prefix_space_num = "  ";//默认两个空格
         var typeScriptEnum = "";
+        if (model == null) return typeScriptEnum;
 
-        var enumDescriptionList = model.description.Split(new string[] { "<br />&nbsp;", "<br />" }, StringSplitOptions.RemoveEmptyEntries);
+        var enumDescriptionList = model.description?.Split(new string[] { "<br />&nbsp;", "<br />" }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
         int descLength = enumDescriptionList.Length - model.@enum.Length;
         if (descLength > 0)
         {
@@ -183,32 +182,65 @@ public static class TypeScriptInterfaceProcess
             var desc = string.Join(" ", enumDescriptionList[..descLength]);
             typeScriptEnum += $"/** {desc} */\n";
         }
-        typeScriptEnum += $"export enum {tsTypeName} {{\n";
-        for (int i = descLength; i < enumDescriptionList.Length; i++)
+        else
         {
-            var item = enumDescriptionList[i];
-            // item 形如: "用户 = 1"
-            // item 形如: "user 普通用户 = 2"
-            // 规则: 取最后一个 = 两侧的值, 防止用户注释干扰
-            var index = item.LastIndexOf("=");
-            if (index == -1 || index == 0) continue;
-            var keyIndex = item.Substring(0, index).Trim().LastIndexOf(" ");
-            if (keyIndex == -1)
+            descLength = 0;
+            if (enumDescriptionList.Length == 1)
             {
-                keyIndex = 0;
-            };
-            var key = item.Substring(keyIndex, index - keyIndex).Trim();
-            var value = item.Substring(index + 1).Trim();
-            var description = item.Substring(0, keyIndex).Trim();
-
-            //var enumItem = item.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-            if (!string.IsNullOrEmpty(description))
-            {
-                typeScriptEnum += $"{prefix_space_num}/** {description} */\n";
+                typeScriptEnum += $"/** {enumDescriptionList[0]} */\n";
             }
-            typeScriptEnum += $"{prefix_space_num}{key} = {value}{(i == enumDescriptionList.Length - 1 ? "" : ",")}\n";
         }
+        typeScriptEnum += $"export enum {tsTypeName} {{\n";
+        if (descLength > 0)
+        {
+            for (int i = descLength; i < enumDescriptionList.Length; i++)
+            {
+                var item = enumDescriptionList[i];
+                // item 形如: "用户 = 1"
+                // item 形如: "user 普通用户 = 2"
+                // 规则: 取最后一个 = 两侧的值, 防止用户注释干扰
+                var index = item.LastIndexOf("=");
+                if (index == -1 || index == 0) continue;
+                var keyIndex = item.Substring(0, index).Trim().LastIndexOf(" ");
+                if (keyIndex == -1)
+                {
+                    keyIndex = 0;
+                };
+                var key = item.Substring(keyIndex, index - keyIndex).Trim();
+                var value = item.Substring(index + 1).Trim();
+                var description = item.Substring(0, keyIndex).Trim();
 
+                //var enumItem = item.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                if (!string.IsNullOrEmpty(description))
+                {
+                    typeScriptEnum += $"{prefix_space_num}/** {description} */\n";
+                }
+                typeScriptEnum += $"{prefix_space_num}{key} = {value}{(i == enumDescriptionList.Length - 1 ? "" : ",")}\n";
+            }
+        }
+        else
+        {
+            string pre_enum = "";
+            if (model.type == "integer")
+            {
+                pre_enum = "$";
+            }
+            int m = model.@enum.Length - 1;
+
+            for (int i = 0; i <= m; i++)
+            {
+                var _enum = model.@enum[i];
+                typeScriptEnum += $"{prefix_space_num}{pre_enum}{_enum} = {_enum}";
+                if (i != m)
+                {
+                    typeScriptEnum += ",\n";
+                }
+                else
+                {
+                    typeScriptEnum += "\n";
+                }
+            }
+        }
 
         typeScriptEnum += $"}}\n\n";
         return typeScriptEnum;
