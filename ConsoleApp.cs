@@ -69,13 +69,22 @@ public class ConsoleApp
             if (StringUtil.IsUrl(_config.JsonUrl))
             {
                 var client = new HttpClient();
-                var res = client.GetAsync(_config.JsonUrl).Result;
-                if (!res.IsSuccessStatusCode)
+                try
                 {
-                    Console.WriteLine("获取网络文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result, jsonOptions), ConsoleColor.Red);
-                    throw new ArgumentException(res.StatusCode.ToString());
+                    var res = client.GetAsync(_config.JsonUrl).Result;
+                    if (!res.IsSuccessStatusCode)
+                    {
+                        ConsoleUtil.WriteLine("获取json文件出错了,详细信息:" + JsonSerializer.Serialize(res.Content.ReadAsStringAsync().Result, jsonOptions), ConsoleColor.Red);
+                        throw new ArgumentException(res.StatusCode.ToString());
+                    }
+                    jsondata = res.Content.ReadAsStringAsync().Result;
                 }
-                jsondata = res.Content.ReadAsStringAsync().Result;
+                catch (Exception ex)
+                {
+                    ConsoleUtil.WriteLine($"获取json文件[ ${_config.JsonUrl} ]出错了,详细信息:" + JsonSerializer.Serialize(ex.Message, jsonOptions), ConsoleColor.Red);
+                    wait.Set();
+                    return;
+                }
             }
             else if (File.Exists(_config.JsonUrl))
             {
