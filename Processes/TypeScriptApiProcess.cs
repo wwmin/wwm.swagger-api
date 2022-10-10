@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 using wwm.swagger_api.Models;
 
@@ -160,7 +161,7 @@ public static class TypeScriptApiProcess
     /// </summary>
     /// <param name="ps"></param>
     /// <returns></returns>
-    private static (string content, string paramInterfaceName, List<string>? inPathKeys) ParseParameters(string requestName, Parameter[] ps, string prefix_space_num = "  ", string summary = "")
+    private static (string content, string paramInterfaceName, List<string>? inPathKeys) ParseParameters(string requestName, Parameter[] ps, string prefix_space_num = "  ", string summary = "", string interfacePre = "")
     {
         if (ps == null) return ("", "", null);
         StringBuilder sb = new StringBuilder();
@@ -182,7 +183,15 @@ public static class TypeScriptApiProcess
             {
                 sb.AppendLine($"{prefix_space_num}/** {p.description} */");
             }
-            var interfaceNameType = ProcessUtil.Convert(p.schema._ref ?? p.schema.items?.type, p.schema.type);
+            string interfaceNameType = "";
+            if (p.schema._ref != null)
+            {
+                interfaceNameType = interfacePre + "." + ProcessUtil.Convert(p.schema._ref, p.schema.type);
+            }
+            else
+            {
+                interfaceNameType = ProcessUtil.Convert(p.schema.items?.type, p.schema.type);
+            }
             allTypes.Add(interfaceNameType);
             if (isNullable == false && p.required == false) isNullable = true;
             sb.AppendLine($"{prefix_space_num}{p.name}: {interfaceNameType}{(p.required ? "" : " | null")},");
@@ -218,7 +227,7 @@ public static class TypeScriptApiProcess
         if (!string.IsNullOrEmpty(reqModel.summary)) sb.AppendLine($"/** {reqModel.summary} */");
         // 处理入参, get/delete 默认只有queryParams , post/put默认首先有requestBody和parameters
         // 处理parameters参数
-        var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, prefix_space_num, reqModel.summary);
+        var parameters = ParseParameters(requestUrlPathName, reqModel.parameters, prefix_space_num, reqModel.summary, interfacePre);
         //if (!string.IsNullOrEmpty(parameters.content))
         //{
         //    SaveFile(fileName, parameters.content, true);
