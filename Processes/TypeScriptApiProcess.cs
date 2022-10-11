@@ -437,7 +437,8 @@ public static class TypeScriptApiProcess
                             {
                                 if (data._ref == null && data.items == null)
                                 {
-                                    return (data.type, true);
+                                    var t = ProcessUtil.Convert(null, data.type);
+                                    return (t, true);
                                 }
                                 // 因 值 类型被系统包装成了对象类型, 实际返回值还是值类型, swagger或框架的bug? , 调用Value或value的值
                                 var subType = ProcessUtil.ParseRefType(data._ref);

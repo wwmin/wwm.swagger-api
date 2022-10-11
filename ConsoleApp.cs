@@ -64,6 +64,8 @@ public class ConsoleApp
         #endregion
         //开始生成操作
         {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
             string jsondata = string.Empty;
             #region 读取json文件内容
             if (StringUtil.IsUrl(_config.JsonUrl))
@@ -94,8 +96,8 @@ public class ConsoleApp
             {
                 throw new ArgumentException($"错误的参数设置：请检查 配置文件中 JsonUrl 参数的正确性");
             }
-
-            ConsoleUtil.WriteLine($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取swagger文件内容完毕\r\n", ConsoleColor.DarkGreen);
+            timer.Stop();
+            ConsoleUtil.WriteLine($"\r\n[{DateTime.Now:MM-dd HH:mm:ss}] 读取swagger文件内容完毕, 用时:{timer.ElapsedMilliseconds / 1000.0}s\r\n", ConsoleColor.DarkGreen);
             #endregion
             #region 处理json
 

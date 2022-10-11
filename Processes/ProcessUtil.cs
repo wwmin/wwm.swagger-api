@@ -20,13 +20,9 @@ public static class ProcessUtil
             case "string":
                 return "string";
             case "int":
-                return "number";
             case "integer":
-                return "number";
             case "long":
-                return "number";
             case "float":
-                return "number";
             case "double":
                 return "number";
             case "bool":
